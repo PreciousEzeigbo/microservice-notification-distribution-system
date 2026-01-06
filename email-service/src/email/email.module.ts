@@ -3,7 +3,6 @@ import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { EmailService } from './email.service';
 import { EmailController } from './email.controller';
-import { EmailHealthController } from './health.controller';
 import { EmailConsumer } from './consumers/email.consumer';
 import { EmailProcessor } from './processors/email.processor';
 import { UserServiceClient } from './http/user.service.client';
@@ -20,7 +19,7 @@ import { AbstractEmailProvider } from '../shared/interfaces/email-provider.inter
     }),
     ConfigModule,
   ],
-  controllers: [EmailController, EmailHealthController],
+  controllers: [EmailController],
   providers: [
     EmailService,
     EmailConsumer,
