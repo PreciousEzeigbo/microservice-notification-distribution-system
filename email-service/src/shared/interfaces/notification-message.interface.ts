@@ -1,4 +1,3 @@
-// SHARED INTERFACE - Must be agreed with all teams
 export enum NotificationType {
   EMAIL = 'email',
   PUSH = 'push',
@@ -77,7 +76,7 @@ export interface NotificationStatusUpdate {
   timestamp?: string;
   error?: string;
   provider_response?: {
-    messageId?: string;
+    message_id?: string;
     success?: boolean;
     [key: string]: string | number | boolean | undefined;
   };
