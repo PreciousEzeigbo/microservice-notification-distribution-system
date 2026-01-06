@@ -15,7 +15,7 @@ export const RETRY_CONFIG = {
 } as const;
 
 export const CIRCUIT_BREAKER_CONFIG = {
-  TIMEOUT: 5000,              // 5 seconds
+  TIMEOUT: 5000,
   ERROR_THRESHOLD: 5,         // Open after 5 errors
   RESET_TIMEOUT: 30000,       // Try again after 30 seconds
 } as const;
