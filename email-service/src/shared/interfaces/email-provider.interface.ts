@@ -1,13 +1,13 @@
 export interface EmailProviderConfig {
   from: string;
-  replyTo?: string;
+  reply_to?: string;
 }
 
 export interface EmailAttachment {
   filename: string;
   content?: string | Buffer;
   path?: string;
-  contentType?: string;
+  content_type?: string;
   cid?: string;
 }
 
@@ -17,13 +17,13 @@ export interface EmailPayload {
   html: string;
   text?: string;
   from?: string;
-  replyTo?: string;
+  reply_to?: string;
   attachments?: EmailAttachment[];
 }
 
 export interface EmailResult {
   success: boolean;
-  messageId?: string;
+  message_id?: string;
   error?: string;
   provider: string;
   [key: string]: string | number | boolean | undefined;
