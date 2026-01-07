@@ -37,11 +37,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
       : null;
 
     // Log the error with full details
+
     this.logger.error(
       `HTTP ${status} Error - ${request.method} ${request.url}`,
       {
         message,
-        statusCode: status,
+        status_code: status,
         timestamp: new Date().toISOString(),
         path: request.url,
         method: request.method,
@@ -51,8 +52,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     // Send consistent error response
     response.status(status).json({
-      success: false,
-      statusCode: status,
+      status_code: status,
       message,
       error: typeof errorResponse === 'object' && errorResponse !== null
         ? errorResponse
