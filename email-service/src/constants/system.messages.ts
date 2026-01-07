@@ -13,6 +13,9 @@ export const UNKNOWN_ERROR = 'Unknown error';
 // ==================== EMAIL SERVICE MESSAGES ====================
 export const EMAIL_SERVICE_INITIALIZED = 'Email service initialized and consuming messages';
 export const EMAIL_SERVICE_INITIALIZING = 'Initializing Email Service...';
+export const EMAIL_SERVICE_HEALTHY = 'Email service is healthy';
+export const EMAIL_SERVICE_UNHEALTHY = 'Email service is unhealthy';
+export const EMAIL_SERVICE_DEGRADED = 'Email service is degraded - some external services unavailable';
 export const EMAIL_SENT_SUCCESSFULLY = 'Email sent successfully';
 export const EMAIL_SENDING_FAILED = 'Email sending failed';
 export const EMAIL_PROCESSING_STARTED = 'Processing email notification';
