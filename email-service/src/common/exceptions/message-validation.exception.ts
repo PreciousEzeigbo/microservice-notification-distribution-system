@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 /**
- * Custom exception for message validation failures
- * Use when RabbitMQ message format is invalid
+ * Custom exception for message validation failures.
+ * Use when any message or payload is missing required fields or has an invalid format.
  */
 export class MessageValidationException extends HttpException {
   constructor(missingFields: string[]) {
