@@ -8,10 +8,10 @@ export class MessageValidationException extends HttpException {
   constructor(missingFields: string[]) {
     super(
       {
-        statusCode: HttpStatus.BAD_REQUEST,
+        status_code: HttpStatus.BAD_REQUEST,
         message: 'Invalid message format',
         error: 'Validation Error',
-        missingFields,
+        missing_fields: missingFields,
       },
       HttpStatus.BAD_REQUEST,
     );
