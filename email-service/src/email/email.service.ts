@@ -5,6 +5,7 @@ import { AbstractEmailProvider } from '../shared/interfaces/email-provider.inter
 import { UserServiceClient } from './http/user.service.client';
 import { TemplateServiceClient } from './http/template.service.client';
 import { ApiGatewayClient } from './http/api-gateway.client';
+import * as MSG from '../constants/system.messages';
 
 @Injectable()
 export class EmailService implements OnModuleInit {
@@ -20,7 +21,10 @@ export class EmailService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    this.logger.log('Initializing Email Service...');
+    this.logger.log(MSG.EMAIL_SERVICE_INITIALIZING);
+
+    // Ensure consumer is connected before starting (call connect explicitly)
+    await this.emailConsumer['connect']();
 
     // Set the message handler
     this.emailConsumer.setMessageHandler(async (message) => {
@@ -30,27 +34,53 @@ export class EmailService implements OnModuleInit {
     // Start consuming messages
     await this.emailConsumer.startConsuming();
 
-    this.logger.log('Email service initialized and consuming messages');
+    this.logger.log(MSG.EMAIL_SERVICE_INITIALIZED);
   }
 
-  async getHealth(): Promise<{
-    service: string;
-    rabbitmq: boolean;
-    smtp: boolean;
-    externalServices: {
-      userService: boolean;
-      templateService: boolean;
-      apiGateway: boolean;
-    };
-  }> {
+  async getHealth() {
+    // Run all health checks in parallel for faster response
+    const [
+      rabbitmqHealthy,
+      smtpHealthy,
+      userServiceHealthy,
+      templateServiceHealthy,
+      apiGatewayHealthy,
+    ] = await Promise.all([
+      this.emailConsumer.isHealthy(),
+      this.emailProvider.verifyConnection(),
+      this.userServiceClient.isHealthy(),
+      this.templateServiceClient.isHealthy(),
+      this.apiGatewayClient.isHealthy(),
+    ]);
+
+    const unhealthyDependencies: string[] = [];
+    
+    // Critical dependencies
+    if (!rabbitmqHealthy) unhealthyDependencies.push('rabbitmq');
+    if (!smtpHealthy) unhealthyDependencies.push('smtp');
+    
+    // External services (non-critical)
+    if (!userServiceHealthy) unhealthyDependencies.push('user_service');
+    if (!templateServiceHealthy) unhealthyDependencies.push('template_service');
+    if (!apiGatewayHealthy) unhealthyDependencies.push('api_gateway');
+
+    const criticalServicesHealthy = rabbitmqHealthy && smtpHealthy;
+    const allServicesHealthy = criticalServicesHealthy && userServiceHealthy && templateServiceHealthy && apiGatewayHealthy;
+
     return {
-      service: 'email-service',
-      rabbitmq: await this.emailConsumer.isHealthy(),
-      smtp: await this.emailProvider.verifyConnection(),
-      externalServices: {
-        userService: await this.userServiceClient.isHealthy(),
-        templateService: await this.templateServiceClient.isHealthy(),
-        apiGateway: await this.apiGatewayClient.isHealthy(),
+      healthy: criticalServicesHealthy,
+      degraded: criticalServicesHealthy && !allServicesHealthy,
+      unhealthy_dependencies: unhealthyDependencies,
+      details: {
+        service: 'email-service',
+        rabbitmq: rabbitmqHealthy,
+        smtp: smtpHealthy,
+        external_services: {
+          user_service: userServiceHealthy,
+          template_service: templateServiceHealthy,
+          api_gateway: apiGatewayHealthy,
+        },
+        timestamp: new Date().toISOString(),
       },
     };
   }

@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { EmailService } from './email.service';
 import { EmailController } from './email.controller';
 import { EmailConsumer } from './consumers/email.consumer';
+import { DlqReprocessor } from './consumers/dlq.reprocessor';
 import { EmailProcessor } from './processors/email.processor';
 import { UserServiceClient } from './http/user.service.client';
 import { TemplateServiceClient } from './http/template.service.client';
@@ -23,6 +24,7 @@ import { AbstractEmailProvider } from '../shared/interfaces/email-provider.inter
   providers: [
     EmailService,
     EmailConsumer,
+    DlqReprocessor,
     EmailProcessor,
     UserServiceClient,
     TemplateServiceClient,
