@@ -10,8 +10,8 @@ class UserManager(BaseUserManager):
     """
     Custom user manager for the User model.
 
-    This is required when using AbstractBaseUser.
-    It defines how users and superusers are created.
+    Required when using AbstractBaseUser.
+    Defines how users and superusers are created.
     """
 
     def create_user(self, email, password=None, **extra_fields):
@@ -24,7 +24,7 @@ class UserManager(BaseUserManager):
         # Normalize email (lowercase domain, etc.)
         email = self.normalize_email(email)
 
-        # Create user instance
+        # Create user instance (extra_fields can include push_token, name, etc.)
         user = self.model(email=email, **extra_fields)
 
         # Hash and set password
@@ -48,8 +48,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     """
     Custom User model for the User Service.
 
-    Uses UUID as primary key (required for microservices).
-    Authentication is email-based (no username).
+    - Uses UUID as primary key (microservice-safe)
+    - Uses email instead of username
     """
 
     # Primary key as UUID for global uniqueness
@@ -59,23 +59,29 @@ class User(AbstractBaseUser, PermissionsMixin):
         editable=False
     )
 
-    # User email (used for login)
+    # User email (used for authentication)
     email = models.EmailField(unique=True)
 
     # User display name
     name = models.CharField(max_length=255)
 
-    # Whether the user account is active
-    is_active = models.BooleanField(default=True)
+    # Optional push notification token (FCM, Expo, etc.)
+    push_token = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True
+    )
 
-    # Required for Django admin and permissions
+    # User status flags
+    is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
     # Attach custom user manager
     objects = UserManager()
 
-    # Field used for authentication
+    # Authentication configuration
     USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["name"]
 
     def __str__(self):
         return self.email
@@ -85,8 +91,8 @@ class UserPreference(models.Model):
     """
     Stores notification preferences for a user.
 
-    Separated from User model to keep responsibilities clean
-    and allow future extension (SMS, WhatsApp, etc.).
+    Kept separate to allow easy extension
+    (SMS, WhatsApp, in-app notifications, etc.).
     """
 
     # One-to-one relationship with User
