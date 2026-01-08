@@ -1,5 +1,8 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { NotificationMessage, NotificationStatus } from '../../shared/interfaces/notification-message.interface';
+import {
+  NotificationMessage,
+  NotificationStatus,
+} from '../../shared/interfaces/notification-message.interface';
 import { UserServiceClient } from '../http/user.service.client';
 import { TemplateServiceClient } from '../http/template.service.client';
 import { ApiGatewayClient } from '../http/api-gateway.client';
@@ -21,19 +24,25 @@ export class EmailProcessor {
 
   async process(message: NotificationMessage): Promise<void> {
     const correlationId = message.correlation_id || message.message_id;
-    this.logger.log(`${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.EMAIL_PROCESSING_STARTED}: ${message.message_id}`);
+    this.logger.log(
+      `${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.EMAIL_PROCESSING_STARTED}: ${message.message_id}`,
+    );
 
     try {
       // 1. Validate message
       this.validateMessage(message);
 
       // 2. Fetch user details
-      this.logger.log(`${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.USER_SERVICE_FETCHING(message.user_id)}`);
+      this.logger.log(
+        `${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.USER_SERVICE_FETCHING(message.user_id)}`,
+      );
       const user = await this.userServiceClient.getUser(message.user_id);
 
       // 3. Check user preferences
       if (!user.preferences.email) {
-        this.logger.warn(`${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.USER_DISABLED_EMAIL_NOTIFICATIONS(message.user_id)}`);
+        this.logger.warn(
+          `${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.USER_DISABLED_EMAIL_NOTIFICATIONS(message.user_id)}`,
+        );
         await this.apiGatewayClient.updateStatus({
           notification_id: message.message_id,
           status: NotificationStatus.DELIVERED,
@@ -44,19 +53,33 @@ export class EmailProcessor {
       }
 
       // 4. Fetch template
-      this.logger.log(`${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.TEMPLATE_SERVICE_FETCHING(message.template_code)}`);
-      const template = await this.templateServiceClient.getTemplate(message.template_code);
+      this.logger.log(
+        `${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.TEMPLATE_SERVICE_FETCHING(message.template_code)}`,
+      );
+      const template = await this.templateServiceClient.getTemplate(
+        message.template_code,
+      );
 
       // 5. Compile template with variables
-      this.logger.log(`${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.TEMPLATE_COMPILING}`);
-      const compiledSubject = this.compileTemplate(template.subject, message.variables);
-      const compiledBody = this.compileTemplate(template.body, message.variables);
+      this.logger.log(
+        `${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.TEMPLATE_COMPILING}`,
+      );
+      const compiledSubject = this.compileTemplate(
+        template.subject,
+        message.variables,
+      );
+      const compiledBody = this.compileTemplate(
+        template.body,
+        message.variables,
+      );
       const compiledText = template.text_version
         ? this.compileTemplate(template.text_version, message.variables)
         : undefined;
 
       // 6. Send email
-      this.logger.log(`${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.SMTP_SENDING_EMAIL(user.email)}`);
+      this.logger.log(
+        `${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.SMTP_SENDING_EMAIL(user.email)}`,
+      );
       const result = await this.emailProvider.sendEmail({
         to: user.email,
         subject: compiledSubject,
@@ -69,7 +92,9 @@ export class EmailProcessor {
       }
 
       // 7. Update status to delivered
-      this.logger.log(`${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.EMAIL_SENT_SUCCESSFULLY}`);
+      this.logger.log(
+        `${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.EMAIL_SENT_SUCCESSFULLY}`,
+      );
       await this.apiGatewayClient.updateStatus({
         notification_id: message.message_id,
         status: NotificationStatus.DELIVERED,
@@ -77,42 +102,64 @@ export class EmailProcessor {
         provider_response: result,
       });
 
-      this.logger.log(`${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.EMAIL_PROCESSING_COMPLETED}`);
+      this.logger.log(
+        `${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.EMAIL_PROCESSING_COMPLETED}`,
+      );
     } catch (error) {
-      this.logger.error(`${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.EMAIL_PROCESSING_FAILED}`, error);
+      this.logger.error(
+        `${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.EMAIL_PROCESSING_FAILED}`,
+        error,
+      );
 
       // Update status to failed
-      await this.apiGatewayClient.updateStatus({
-        notification_id: message.message_id,
-        status: NotificationStatus.FAILED,
-        timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : MSG.UNKNOWN_ERROR,
-      }).catch((statusError) => {
-        this.logger.error(`${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.API_GATEWAY_STATUS_UPDATE_FAILED(message.message_id)}`, statusError);
-      });
+      await this.apiGatewayClient
+        .updateStatus({
+          notification_id: message.message_id,
+          status: NotificationStatus.FAILED,
+          timestamp: new Date().toISOString(),
+          error: error instanceof Error ? error.message : MSG.UNKNOWN_ERROR,
+        })
+        .catch((statusError) => {
+          this.logger.error(
+            `${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.API_GATEWAY_STATUS_UPDATE_FAILED(message.message_id)}`,
+            statusError,
+          );
+        });
 
       throw error;
     }
   }
 
-
   private async validateMessage(message: NotificationMessage): Promise<void> {
-    const required = ['message_id', 'request_id', 'user_id', 'template_code', 'variables'];
-    const missing = required.filter((field) => !message[field as keyof NotificationMessage]);
+    const required = [
+      'message_id',
+      'request_id',
+      'user_id',
+      'template_code',
+      'variables',
+    ];
+    const missing = required.filter(
+      (field) => !message[field as keyof NotificationMessage],
+    );
 
     if (missing.length > 0) {
       throw new MessageValidationException(missing);
     }
 
     // Fetch template to extract required placeholders
-    const template = await this.templateServiceClient.getTemplate(message.template_code);
-    const placeholders = this.extractPlaceholders(template.subject)
-      .concat(this.extractPlaceholders(template.body));
+    const template = await this.templateServiceClient.getTemplate(
+      message.template_code,
+    );
+    const placeholders = this.extractPlaceholders(template.subject).concat(
+      this.extractPlaceholders(template.body),
+    );
     if (template.text_version) {
       placeholders.push(...this.extractPlaceholders(template.text_version));
     }
     const uniquePlaceholders = Array.from(new Set(placeholders));
-    const missingVars = uniquePlaceholders.filter((ph) => !(ph in message.variables));
+    const missingVars = uniquePlaceholders.filter(
+      (ph) => !(ph in message.variables),
+    );
     if (missingVars.length > 0) {
       throw new MessageValidationException(missingVars);
     }
@@ -130,14 +177,19 @@ export class EmailProcessor {
     return matches;
   }
 
-  private compileTemplate(template: string, variables: Record<string, unknown>): string {
+  private compileTemplate(
+    template: string,
+    variables: Record<string, unknown>,
+  ): string {
     try {
       const compiledTemplate = Handlebars.compile(template);
       return compiledTemplate(variables);
     } catch (error) {
       this.logger.error(MSG.TEMPLATE_COMPILATION_FAILED, error);
       throw new BadRequestException(
-        MSG.TEMPLATE_COMPILATION_ERROR(error instanceof Error ? error.message : MSG.UNKNOWN_ERROR)
+        MSG.TEMPLATE_COMPILATION_ERROR(
+          error instanceof Error ? error.message : MSG.UNKNOWN_ERROR,
+        ),
       );
     }
   }

@@ -32,9 +32,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ? exception.message
         : 'Internal server error';
 
-    const errorResponse = exception instanceof HttpException
-      ? exception.getResponse()
-      : null;
+    const errorResponse =
+      exception instanceof HttpException ? exception.getResponse() : null;
 
     // Log the error with full details
 
@@ -54,9 +53,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
     response.status(status).json({
       status_code: status,
       message,
-      error: typeof errorResponse === 'object' && errorResponse !== null
-        ? errorResponse
-        : message,
+      error:
+        typeof errorResponse === 'object' && errorResponse !== null
+          ? errorResponse
+          : message,
       timestamp: new Date().toISOString(),
       path: request.url,
     });

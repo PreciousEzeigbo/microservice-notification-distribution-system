@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as amqp from 'amqplib';
 import { QUEUE_CONFIG } from '../../shared/constants/queue.constants';
@@ -45,12 +50,12 @@ export class DlqReprocessor implements OnModuleInit, OnModuleDestroy {
     try {
       const rabbitmqUrl = this.configService.get<string>(
         'RABBITMQ_URL',
-        'amqp://guest:guest@localhost:5672'
+        'amqp://guest:guest@localhost:5672',
       );
 
       this.logger.log(MSG.DLQ_REPROCESSOR_CONNECTING(rabbitmqUrl));
       this.connection = await amqp.connect(rabbitmqUrl);
-      
+
       this.connection.on('error', (err: Error) => {
         this.logger.error('DLQ Reprocessor connection error', err);
       });
@@ -93,9 +98,14 @@ export class DlqReprocessor implements OnModuleInit, OnModuleDestroy {
       const servicesHealthy = await this.checkDependentServicesHealth();
 
       // Log only if health status changed
-      if (this.lastServicesHealthy === null || this.lastServicesHealthy !== servicesHealthy) {
+      if (
+        this.lastServicesHealthy === null ||
+        this.lastServicesHealthy !== servicesHealthy
+      ) {
         if (servicesHealthy) {
-          this.logger.log('DLQ reprocessing enabled: all dependent services are healthy');
+          this.logger.log(
+            'DLQ reprocessing enabled: all dependent services are healthy',
+          );
         } else {
           this.logger.warn(MSG.DLQ_REPROCESSOR_SERVICES_UNHEALTHY);
         }
@@ -110,12 +120,16 @@ export class DlqReprocessor implements OnModuleInit, OnModuleDestroy {
 
       // Get messages from DLQ
       let processed_count = 0;
-      let message = await this.channel.get(QUEUE_CONFIG.FAILED_QUEUE, { noAck: false });
+      let message = await this.channel.get(QUEUE_CONFIG.FAILED_QUEUE, {
+        noAck: false,
+      });
 
       while (message && processed_count < BATCH_SIZE) {
         await this.reprocessMessage(message);
         processed_count++;
-        message = await this.channel.get(QUEUE_CONFIG.FAILED_QUEUE, { noAck: false });
+        message = await this.channel.get(QUEUE_CONFIG.FAILED_QUEUE, {
+          noAck: false,
+        });
       }
 
       if (processed_count > 0) {
@@ -138,7 +152,7 @@ export class DlqReprocessor implements OnModuleInit, OnModuleDestroy {
       // Check if message has exceeded DLQ reprocess attempts
       if (dlq_retry_count >= MAX_DLQ_REPROCESS_ATTEMPTS) {
         this.logger.error(
-          MSG.DLQ_REPROCESSOR_MAX_ATTEMPTS_EXCEEDED(MAX_DLQ_REPROCESS_ATTEMPTS)
+          MSG.DLQ_REPROCESSOR_MAX_ATTEMPTS_EXCEEDED(MAX_DLQ_REPROCESS_ATTEMPTS),
         );
         // Keep in DLQ for manual intervention
         this.channel.nack(msg, false, true);
@@ -152,7 +166,10 @@ export class DlqReprocessor implements OnModuleInit, OnModuleDestroy {
       headers['x-retry-count'] = 0;
 
       this.logger.log(
-        MSG.DLQ_REPROCESSOR_REQUEUING(dlq_retry_count + 1, MAX_DLQ_REPROCESS_ATTEMPTS)
+        MSG.DLQ_REPROCESSOR_REQUEUING(
+          dlq_retry_count + 1,
+          MAX_DLQ_REPROCESS_ATTEMPTS,
+        ),
       );
 
       // Send back to main queue for reprocessing
@@ -163,7 +180,7 @@ export class DlqReprocessor implements OnModuleInit, OnModuleDestroy {
         {
           headers,
           persistent: true,
-        }
+        },
       );
 
       // Acknowledge DLQ message
@@ -189,7 +206,7 @@ export class DlqReprocessor implements OnModuleInit, OnModuleDestroy {
 
       if (!all_healthy) {
         this.logger.debug(
-          `Service health: User=${userServiceHealthy}, Template=${templateServiceHealthy}`
+          `Service health: User=${userServiceHealthy}, Template=${templateServiceHealthy}`,
         );
       }
 

@@ -1,7 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
-import { AbstractEmailProvider, EmailPayload, EmailResult } from '../../shared/interfaces/email-provider.interface';
+import {
+  AbstractEmailProvider,
+  EmailPayload,
+  EmailResult,
+} from '../../shared/interfaces/email-provider.interface';
 import * as MSG from '../../constants/system.messages';
 
 @Injectable()
@@ -30,7 +34,8 @@ export class SmtpEmailProvider extends AbstractEmailProvider {
       requireTLS: !secure && port === 587,
       tls: {
         // Reject unauthorized certs in production for security
-        rejectUnauthorized: this.configService.get<string>('NODE_ENV') === 'production',
+        rejectUnauthorized:
+          this.configService.get<string>('NODE_ENV') === 'production',
       },
       connectionTimeout: 5000,
       greetingTimeout: 5000,
@@ -51,8 +56,13 @@ export class SmtpEmailProvider extends AbstractEmailProvider {
 
   async sendEmail(payload: EmailPayload): Promise<EmailResult> {
     try {
-      const from = payload.from || this.configService.get<string>('SMTP_FROM_EMAIL', 'noreply@example.com');
-      
+      const from =
+        payload.from ||
+        this.configService.get<string>(
+          'SMTP_FROM_EMAIL',
+          'noreply@example.com',
+        );
+
       const mailOptions: nodemailer.SendMailOptions = {
         from,
         to: payload.to,
@@ -75,7 +85,7 @@ export class SmtpEmailProvider extends AbstractEmailProvider {
       };
     } catch (error) {
       this.logger.error(MSG.SMTP_SEND_FAILED, error);
-      
+
       return {
         success: false,
         error: error instanceof Error ? error.message : 'unknown_smtp_error',
@@ -88,10 +98,10 @@ export class SmtpEmailProvider extends AbstractEmailProvider {
     try {
       // Add timeout to prevent hanging health checks
       const verifyPromise = this.transporter.verify();
-      const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error('SMTP verification timeout')), 5000)
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('SMTP verification timeout')), 5000),
       );
-      
+
       await Promise.race([verifyPromise, timeoutPromise]);
       return true;
     } catch (error) {

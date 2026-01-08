@@ -18,10 +18,7 @@ async function bootstrap() {
   );
 
   // Register global exception filters
-  app.useGlobalFilters(
-    new AllExceptionsFilter(),
-    new HttpExceptionFilter(),
-  );
+  app.useGlobalFilters(new AllExceptionsFilter(), new HttpExceptionFilter());
 
   // Set global prefix
   app.setGlobalPrefix('api');
@@ -38,14 +35,16 @@ async function bootstrap() {
     .setDescription('API documentation for the Email Service')
     .setVersion('1.0')
     .build();
-  
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
-  
+
   console.log(`🚀 Application is running on: http://localhost:${port}`);
-  console.log(`📚 Swagger docs available at: http://localhost:${port}/api/docs`);
+  console.log(
+    `📚 Swagger docs available at: http://localhost:${port}/api/docs`,
+  );
 }
 bootstrap();

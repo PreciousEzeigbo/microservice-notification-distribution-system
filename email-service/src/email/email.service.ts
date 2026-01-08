@@ -54,18 +54,22 @@ export class EmailService implements OnModuleInit {
     ]);
 
     const unhealthyDependencies: string[] = [];
-    
+
     // Critical dependencies
     if (!rabbitmqHealthy) unhealthyDependencies.push('rabbitmq');
     if (!smtpHealthy) unhealthyDependencies.push('smtp');
-    
+
     // External services (non-critical)
     if (!userServiceHealthy) unhealthyDependencies.push('user_service');
     if (!templateServiceHealthy) unhealthyDependencies.push('template_service');
     if (!apiGatewayHealthy) unhealthyDependencies.push('api_gateway');
 
     const criticalServicesHealthy = rabbitmqHealthy && smtpHealthy;
-    const allServicesHealthy = criticalServicesHealthy && userServiceHealthy && templateServiceHealthy && apiGatewayHealthy;
+    const allServicesHealthy =
+      criticalServicesHealthy &&
+      userServiceHealthy &&
+      templateServiceHealthy &&
+      apiGatewayHealthy;
 
     return {
       healthy: criticalServicesHealthy,

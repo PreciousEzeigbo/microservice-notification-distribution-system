@@ -12,10 +12,13 @@ export class EmailController {
   @Get('health')
   @ApiOperation({ summary: 'Check email service health' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Service is healthy' })
-  @ApiResponse({ status: HttpStatus.SERVICE_UNAVAILABLE, description: 'Service is unhealthy' })
+  @ApiResponse({
+    status: HttpStatus.SERVICE_UNAVAILABLE,
+    description: 'Service is unhealthy',
+  })
   async checkHealth(@Res() res: Response) {
     const health = await this.emailService.getHealth();
-    
+
     // Service is completely down (critical dependencies failed)
     if (!health.healthy) {
       return res.status(HttpStatus.SERVICE_UNAVAILABLE).json({
@@ -25,7 +28,7 @@ export class EmailController {
         data: health.details,
       });
     }
-    
+
     // Service is functional but some external services are down
     if (health.degraded) {
       return res.status(HttpStatus.OK).json({
@@ -37,7 +40,7 @@ export class EmailController {
         },
       });
     }
-    
+
     // All services healthy
     return res.status(HttpStatus.OK).json({
       status_code: HttpStatus.OK,

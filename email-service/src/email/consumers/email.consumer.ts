@@ -1,7 +1,15 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as amqp from 'amqplib';
-import { QUEUE_CONFIG, RETRY_CONFIG } from '../../shared/constants/queue.constants';
+import {
+  QUEUE_CONFIG,
+  RETRY_CONFIG,
+} from '../../shared/constants/queue.constants';
 import { NotificationMessage } from '../../shared/interfaces/notification-message.interface';
 import * as MSG from '../../constants/system.messages';
 
@@ -14,7 +22,9 @@ export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(EmailConsumer.name);
   private connection: Awaited<ReturnType<typeof amqp.connect>> | null = null;
   private channel: amqp.ConfirmChannel | null = null;
-  private message_handler: ((message: NotificationMessage) => Promise<void>) | null = null;
+  private message_handler:
+    | ((message: NotificationMessage) => Promise<void>)
+    | null = null;
   private is_shutting_down = false;
   private reconnect_timeout: NodeJS.Timeout | null = null;
 
@@ -41,12 +51,12 @@ export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
     try {
       const rabbitmqUrl = this.configService.get<string>(
         'RABBITMQ_URL',
-        'amqp://guest:guest@localhost:5672'
+        'amqp://guest:guest@localhost:5672',
       );
 
       this.logger.log(MSG.RABBITMQ_CONNECTING(rabbitmqUrl));
       this.connection = await amqp.connect(rabbitmqUrl);
-      
+
       // Setup connection event handlers for resilience
       this.connection.on('error', (err: Error) => {
         this.logger.error('RabbitMQ connection error', err);
@@ -77,18 +87,14 @@ export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
       await this.channel.prefetch(1);
 
       // Assert exchange
-      await this.channel.assertExchange(
-        QUEUE_CONFIG.EXCHANGE,
-        'direct',
-        { durable: true }
-      );
+      await this.channel.assertExchange(QUEUE_CONFIG.EXCHANGE, 'direct', {
+        durable: true,
+      });
 
       // Assert dead letter exchange
-      await this.channel.assertExchange(
-        QUEUE_CONFIG.DLX_EXCHANGE,
-        'direct',
-        { durable: true }
-      );
+      await this.channel.assertExchange(QUEUE_CONFIG.DLX_EXCHANGE, 'direct', {
+        durable: true,
+      });
 
       // Assert dead letter queue
       await this.channel.assertQueue(QUEUE_CONFIG.FAILED_QUEUE, {
@@ -99,7 +105,7 @@ export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
       await this.channel.bindQueue(
         QUEUE_CONFIG.FAILED_QUEUE,
         QUEUE_CONFIG.DLX_EXCHANGE,
-        QUEUE_CONFIG.DLX_ROUTING_KEY
+        QUEUE_CONFIG.DLX_ROUTING_KEY,
       );
 
       // Assert email queue with DLX config
@@ -113,7 +119,7 @@ export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
       await this.channel.bindQueue(
         QUEUE_CONFIG.EMAIL_QUEUE,
         QUEUE_CONFIG.EXCHANGE,
-        QUEUE_CONFIG.EMAIL_ROUTING_KEY
+        QUEUE_CONFIG.EMAIL_ROUTING_KEY,
       );
 
       // Assert delay queue for retry with TTL
@@ -162,7 +168,7 @@ export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
         try {
           const message: NotificationMessage = JSON.parse(message_content);
           const retry_count = this.getRetryCount(msg);
-          
+
           // Call the registered message handler
           if (this.message_handler) {
             await this.message_handler(message);
@@ -177,7 +183,7 @@ export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
           await this.handleMessageError(msg, error);
         }
       },
-      { noAck: false }
+      { noAck: false },
     );
 
     this.logger.log(MSG.QUEUE_CONSUMER_STARTED);
@@ -191,7 +197,7 @@ export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
       return 0;
     }
     const retry_count = msg.properties.headers['x-retry-count'];
-    return (typeof retry_count === 'number' ? retry_count : 0);
+    return typeof retry_count === 'number' ? retry_count : 0;
   }
 
   /**
@@ -220,18 +226,15 @@ export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
       // Prepare headers for retry tracking
       const headers = msg.properties.headers || {};
       headers['x-retry-count'] = new_retry_count;
-      headers['x-last-error'] = error instanceof Error ? error.message : String(error);
+      headers['x-last-error'] =
+        error instanceof Error ? error.message : String(error);
       headers['x-last-retry-time'] = new Date().toISOString();
 
       // Publish to delay queue
-      this.channel.sendToQueue(
-        'email_delay_queue',
-        msg.content,
-        {
-          headers,
-          persistent: true,
-        },
-      );
+      this.channel.sendToQueue('email_delay_queue', msg.content, {
+        headers,
+        persistent: true,
+      });
 
       // Acknowledge the failed message to remove it from main queue
       this.channel.ack(msg);
@@ -272,7 +275,9 @@ export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
     }, CONNECTION_RETRY_DELAY_MS);
   }
 
-  setMessageHandler(handler: (message: NotificationMessage) => Promise<void>): void {
+  setMessageHandler(
+    handler: (message: NotificationMessage) => Promise<void>,
+  ): void {
     this.message_handler = handler;
   }
 

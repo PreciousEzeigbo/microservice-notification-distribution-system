@@ -14,7 +14,8 @@ export default registerAs('app', () => ({
   // External Services
   services: {
     userService: process.env.USER_SERVICE_URL || 'http://localhost:3001',
-    templateService: process.env.TEMPLATE_SERVICE_URL || 'http://localhost:3002',
+    templateService:
+      process.env.TEMPLATE_SERVICE_URL || 'http://localhost:3002',
     apiGateway: process.env.API_GATEWAY_URL || 'http://localhost:3000',
   },
 

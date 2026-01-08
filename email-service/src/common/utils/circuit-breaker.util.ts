@@ -38,10 +38,7 @@ export class CircuitBreaker {
     }
 
     try {
-      const result = await Promise.race([
-        operation(),
-        this.timeout(),
-      ]);
+      const result = await Promise.race([operation(), this.timeout()]);
 
       this.on_success();
       return result as T;

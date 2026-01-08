@@ -76,7 +76,6 @@ export function formatHttpErrorMessage(errorInfo: HttpErrorInfo): string {
     parts.push(`(${errorInfo.url})`);
   }
 
-
   if (errorInfo.status) {
     parts.push(`[${errorInfo.status} ${errorInfo.status_text || ''}]`.trim());
   }

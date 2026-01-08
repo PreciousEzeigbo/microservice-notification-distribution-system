@@ -2,9 +2,15 @@ import { Injectable, Logger, HttpStatus } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom, catchError } from 'rxjs';
-import { TemplateData, ApiResponse } from '../../shared/interfaces/notification-message.interface';
+import {
+  TemplateData,
+  ApiResponse,
+} from '../../shared/interfaces/notification-message.interface';
 import { ServiceUnavailableException } from '../../common/exceptions/service-unavailable.exception';
-import { formatHttpError, formatHttpErrorMessage } from '../../common/utils/http-error.util';
+import {
+  formatHttpError,
+  formatHttpErrorMessage,
+} from '../../common/utils/http-error.util';
 import { CircuitBreaker } from '../../common/utils/circuit-breaker.util';
 import { CIRCUIT_BREAKER_CONFIG } from '../../shared/constants/queue.constants';
 import * as MSG from '../../constants/system.messages';
@@ -19,7 +25,10 @@ export class TemplateServiceClient {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
-    this.baseUrl = this.configService.get<string>('TEMPLATE_SERVICE_URL', 'http://localhost:3002');
+    this.baseUrl = this.configService.get<string>(
+      'TEMPLATE_SERVICE_URL',
+      'http://localhost:3002',
+    );
     this.circuitBreaker = new CircuitBreaker('TemplateService', {
       timeout: CIRCUIT_BREAKER_CONFIG.TIMEOUT,
       error_threshold: CIRCUIT_BREAKER_CONFIG.ERROR_THRESHOLD,
@@ -32,13 +41,22 @@ export class TemplateServiceClient {
 
     return this.circuitBreaker.execute(async () => {
       const response = await firstValueFrom(
-        this.httpService.get<ApiResponse<TemplateData>>(`${this.baseUrl}/api/v1/templates/${templateCode}`).pipe(
-          catchError((error) => {
-            const errorInfo = formatHttpError(error);
-            this.logger.error(`${MSG.TEMPLATE_SERVICE_FETCH_FAILED(templateCode)}: ${formatHttpErrorMessage(errorInfo)}`);
-            throw new ServiceUnavailableException('Template Service', errorInfo.message);
-          }),
-        ),
+        this.httpService
+          .get<
+            ApiResponse<TemplateData>
+          >(`${this.baseUrl}/api/v1/templates/${templateCode}`)
+          .pipe(
+            catchError((error) => {
+              const errorInfo = formatHttpError(error);
+              this.logger.error(
+                `${MSG.TEMPLATE_SERVICE_FETCH_FAILED(templateCode)}: ${formatHttpErrorMessage(errorInfo)}`,
+              );
+              throw new ServiceUnavailableException(
+                'Template Service',
+                errorInfo.message,
+              );
+            }),
+          ),
       );
 
       if (response.data.success && response.data.data) {
@@ -55,12 +73,16 @@ export class TemplateServiceClient {
   async isHealthy(): Promise<boolean> {
     try {
       const response = await firstValueFrom(
-        this.httpService.get(`${this.baseUrl}/api/v1/health`, { timeout: 3000 })
+        this.httpService.get(`${this.baseUrl}/api/v1/health`, {
+          timeout: 3000,
+        }),
       );
       return response.status === HttpStatus.OK;
     } catch (error) {
       const errorInfo = formatHttpError(error);
-      this.logger.warn(`${MSG.TEMPLATE_SERVICE_HEALTH_CHECK_FAILED}: ${formatHttpErrorMessage(errorInfo)}`);
+      this.logger.warn(
+        `${MSG.TEMPLATE_SERVICE_HEALTH_CHECK_FAILED}: ${formatHttpErrorMessage(errorInfo)}`,
+      );
       return false;
     }
   }
