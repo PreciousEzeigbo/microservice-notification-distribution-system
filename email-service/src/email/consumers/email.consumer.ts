@@ -1,12 +1,12 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as amqp from 'amqplib';
-import { QUEUE_CONFIG } from '../../shared/constants/queue.constants';
+import { QUEUE_CONFIG, RETRY_CONFIG } from '../../shared/constants/queue.constants';
 import { NotificationMessage } from '../../shared/interfaces/notification-message.interface';
 import * as MSG from '../../constants/system.messages';
 
-const MAX_RETRY_ATTEMPTS = 3;
-const RETRY_DELAY_MS = 5000;
+const MAX_RETRY_ATTEMPTS = RETRY_CONFIG.MAX_RETRIES;
+const RETRY_DELAY_MS = RETRY_CONFIG.INITIAL_DELAY;
 const CONNECTION_RETRY_DELAY_MS = 10000;
 
 @Injectable()

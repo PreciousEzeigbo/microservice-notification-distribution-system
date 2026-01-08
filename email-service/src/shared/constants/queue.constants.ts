@@ -9,7 +9,7 @@ export const QUEUE_CONFIG = {
 
 export const RETRY_CONFIG = {
   MAX_RETRIES: 3,
-  INITIAL_DELAY: 1000,        // 1 second
+  INITIAL_DELAY: 5000,        // 5 seconds
   MAX_DELAY: 60000,           // 1 minute
   BACKOFF_MULTIPLIER: 2,      // Exponential backoff
 } as const;
