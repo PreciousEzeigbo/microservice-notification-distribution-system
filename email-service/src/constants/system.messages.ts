@@ -80,3 +80,17 @@ export const TEMPLATE_COMPILATION_ERROR = (message: string) => `Template compila
 
 // ==================== CORRELATION/TRACING MESSAGES ====================
 export const CORRELATION_PREFIX = (correlationId: string) => `[${correlationId}]`;
+
+// ==================== DLQ REPROCESSOR MESSAGES ====================
+export const DLQ_REPROCESSOR_CONNECTING = (url: string) => `DLQ Reprocessor connecting to RabbitMQ at ${url}`;
+export const DLQ_REPROCESSOR_CONNECTED = 'DLQ Reprocessor connected successfully';
+export const DLQ_REPROCESSOR_CONNECTION_FAILED = 'DLQ Reprocessor failed to connect';
+export const DLQ_REPROCESSOR_STARTED = (interval: number) => `DLQ Reprocessor started. Checking every ${interval}ms`;
+export const DLQ_REPROCESSOR_CHECKING = 'Checking DLQ for messages to reprocess';
+export const DLQ_REPROCESSOR_SERVICES_UNHEALTHY = 'Skipping DLQ reprocessing - dependent services are unhealthy';
+export const DLQ_REPROCESSOR_BATCH_COMPLETED = (count: number) => `Reprocessed ${count} messages from DLQ`;
+export const DLQ_REPROCESSOR_ERROR = 'Error during DLQ reprocessing';
+export const DLQ_REPROCESSOR_MAX_ATTEMPTS_EXCEEDED = (maxAttempts: number) => `Message exceeded max DLQ reprocess attempts (${maxAttempts}). Requires manual intervention.`;
+export const DLQ_REPROCESSOR_REQUEUING = (attempt: number, maxAttempts: number) => `Requeuing message from DLQ (attempt ${attempt}/${maxAttempts})`;
+export const DLQ_REPROCESSOR_MESSAGE_REQUEUED = 'Message successfully requeued from DLQ to main queue';
+export const DLQ_REPROCESSOR_MESSAGE_ERROR = 'Error reprocessing DLQ message';
