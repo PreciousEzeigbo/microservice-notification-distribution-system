@@ -1,8 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, HttpStatus } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, catchError } from 'rxjs';
 import { TemplateData, ApiResponse } from '../../shared/interfaces/notification-message.interface';
+import { ServiceUnavailableException } from '../../common/exceptions/service-unavailable.exception';
+import { formatHttpError, formatHttpErrorMessage } from '../../common/utils/http-error.util';
+import * as MSG from '../../constants/system.messages';
 
 @Injectable()
 export class TemplateServiceClient {
@@ -17,28 +20,26 @@ export class TemplateServiceClient {
   }
 
   async getTemplate(templateCode: string): Promise<TemplateData> {
-    try {
-      this.logger.log(`Fetching template: ${templateCode}`);
+    this.logger.log(MSG.TEMPLATE_SERVICE_FETCHING(templateCode));
 
-      const response = await firstValueFrom(
-        this.httpService.get<ApiResponse<TemplateData>>(`${this.baseUrl}/api/v1/templates/${templateCode}`)
-      );
+    const response = await firstValueFrom(
+      this.httpService.get<ApiResponse<TemplateData>>(`${this.baseUrl}/api/v1/templates/${templateCode}`).pipe(
+        catchError((error) => {
+          const errorInfo = formatHttpError(error);
+          this.logger.error(`${MSG.TEMPLATE_SERVICE_FETCH_FAILED(templateCode)}: ${formatHttpErrorMessage(errorInfo)}`);
+          throw new ServiceUnavailableException('Template Service', errorInfo.message);
+        }),
+      ),
+    );
 
-      // Handle different response formats
-      if (response.data.success && response.data.data) {
-        return response.data.data;
-      }
-
-      throw new Error(`Template service error: ${response.data.error || 'Unknown error'}`);
-    } catch (error) {
-      this.logger.error(`Failed to fetch template ${templateCode}`, error);
-      
-      // TODO: Implement circuit breaker and fallback (use cached template)
-      if (error instanceof Error) {
-        throw new Error(`Template service unavailable: ${error.message}`);
-      }
-      throw error;
+    if (response.data.success && response.data.data) {
+      return response.data.data;
     }
+
+    throw new ServiceUnavailableException(
+      'Template Service',
+      response.data.error || MSG.UNKNOWN_ERROR,
+    );
   }
 
   async isHealthy(): Promise<boolean> {
@@ -46,10 +47,15 @@ export class TemplateServiceClient {
       const response = await firstValueFrom(
         this.httpService.get(`${this.baseUrl}/api/v1/health`, { timeout: 3000 })
       );
-      return response.status === 200;
+      return response.status === HttpStatus.OK;
     } catch (error) {
-      this.logger.warn('Template service health check failed', error);
+      const errorInfo = formatHttpError(error);
+      this.logger.warn(`${MSG.TEMPLATE_SERVICE_HEALTH_CHECK_FAILED}: ${formatHttpErrorMessage(errorInfo)}`);
       return false;
     }
+  }
+
+  async checkHealth(): Promise<boolean> {
+    return this.isHealthy();
   }
 }

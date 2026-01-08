@@ -1,8 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, HttpStatus } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, catchError } from 'rxjs';
 import { UserData, ApiResponse } from '../../shared/interfaces/notification-message.interface';
+import { ServiceUnavailableException } from '../../common/exceptions/service-unavailable.exception';
+import { formatHttpError, formatHttpErrorMessage } from '../../common/utils/http-error.util';
+import * as MSG from '../../constants/system.messages';
 
 @Injectable()
 export class UserServiceClient {
@@ -17,28 +20,26 @@ export class UserServiceClient {
   }
 
   async getUser(userId: string): Promise<UserData> {
-    try {
-      this.logger.log(`Fetching user details for: ${userId}`);
+    this.logger.log(MSG.USER_SERVICE_FETCHING(userId));
 
-      const response = await firstValueFrom(
-        this.httpService.get<ApiResponse<UserData>>(`${this.baseUrl}/api/v1/users/${userId}`)
-      );
+    const response = await firstValueFrom(
+      this.httpService.get<ApiResponse<UserData>>(`${this.baseUrl}/api/v1/users/${userId}`).pipe(
+        catchError((error) => {
+          const errorInfo = formatHttpError(error);
+          this.logger.error(`${MSG.USER_SERVICE_FETCH_FAILED(userId)}: ${formatHttpErrorMessage(errorInfo)}`);
+          throw new ServiceUnavailableException('User Service', errorInfo.message);
+        }),
+      ),
+    );
 
-      // Handle different response formats
-      if (response.data.success && response.data.data) {
-        return response.data.data;
-      }
-
-      throw new Error(`User service error: ${response.data.error || 'Unknown error'}`);
-    } catch (error) {
-      this.logger.error(`Failed to fetch user ${userId}`, error);
-      
-      // TODO: Implement circuit breaker and fallback
-      if (error instanceof Error) {
-        throw new Error(`User service unavailable: ${error.message}`);
-      }
-      throw error;
+    if (response.data.success && response.data.data) {
+      return response.data.data;
     }
+
+    throw new ServiceUnavailableException(
+      'User Service',
+      response.data.error || MSG.UNKNOWN_ERROR,
+    );
   }
 
   async isHealthy(): Promise<boolean> {
@@ -46,10 +47,15 @@ export class UserServiceClient {
       const response = await firstValueFrom(
         this.httpService.get(`${this.baseUrl}/api/v1/health`, { timeout: 3000 })
       );
-      return response.status === 200;
+      return response.status === HttpStatus.OK;
     } catch (error) {
-      this.logger.warn('User service health check failed', error);
+      const errorInfo = formatHttpError(error);
+      this.logger.warn(`${MSG.USER_SERVICE_HEALTH_CHECK_FAILED}: ${formatHttpErrorMessage(errorInfo)}`);
       return false;
     }
+  }
+
+  async checkHealth(): Promise<boolean> {
+    return this.isHealthy();
   }
 }

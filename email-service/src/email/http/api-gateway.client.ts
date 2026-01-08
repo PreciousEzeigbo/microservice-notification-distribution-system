@@ -1,8 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, HttpStatus } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, catchError, of } from 'rxjs';
 import { NotificationStatusUpdate, ApiResponse } from '../../shared/interfaces/notification-message.interface';
+import { formatHttpError, formatHttpErrorMessage } from '../../common/utils/http-error.util';
+import * as MSG from '../../constants/system.messages';
 
 @Injectable()
 export class ApiGatewayClient {
@@ -17,28 +19,26 @@ export class ApiGatewayClient {
   }
 
   async updateStatus(statusUpdate: NotificationStatusUpdate): Promise<void> {
-    try {
-      this.logger.log(`Updating notification status: ${statusUpdate.notification_id} -> ${statusUpdate.status}`);
+    this.logger.log(MSG.API_GATEWAY_STATUS_UPDATING(statusUpdate.notification_id, statusUpdate.status));
 
-      const response = await firstValueFrom(
-        this.httpService.post<ApiResponse>(
-          `${this.baseUrl}/api/v1/notifications/${statusUpdate.notification_id}/status`,
-          statusUpdate
-        )
-      );
+    await firstValueFrom(
+      this.httpService.post<ApiResponse>(
+        `${this.baseUrl}/api/v1/notifications/${statusUpdate.notification_id}/status`,
+        statusUpdate
+      ).pipe(
+        catchError((error) => {
+          const errorInfo = formatHttpError(error);
+          this.logger.error(
+            `${MSG.API_GATEWAY_STATUS_UPDATE_FAILED(statusUpdate.notification_id)}: ${formatHttpErrorMessage(errorInfo)}`
+          );
+          this.logger.warn(MSG.API_GATEWAY_STATUS_UPDATE_CONTINUING);
+          // Don't throw - return empty observable to prevent message reprocessing
+          return of(null);
+        }),
+      ),
+    );
 
-      if (!response.data.success) {
-        throw new Error(`API Gateway error: ${response.data.error || 'Unknown error'}`);
-      }
-
-      this.logger.log(`Status updated successfully for: ${statusUpdate.notification_id}`);
-    } catch (error) {
-      this.logger.error(`Failed to update status for ${statusUpdate.notification_id}`, error);
-      
-      // Don't throw error here to prevent message reprocessing
-      // Status update failure shouldn't fail the entire message processing
-      this.logger.warn('Status update failed but continuing...');
-    }
+    this.logger.log(MSG.API_GATEWAY_STATUS_UPDATED(statusUpdate.notification_id));
   }
 
   async isHealthy(): Promise<boolean> {
@@ -46,9 +46,10 @@ export class ApiGatewayClient {
       const response = await firstValueFrom(
         this.httpService.get(`${this.baseUrl}/api/v1/health`, { timeout: 3000 })
       );
-      return response.status === 200;
+      return response.status === HttpStatus.OK;
     } catch (error) {
-      this.logger.warn('API Gateway health check failed', error);
+      const errorInfo = formatHttpError(error);
+      this.logger.warn(`${MSG.API_GATEWAY_HEALTH_CHECK_FAILED}: ${formatHttpErrorMessage(errorInfo)}`);
       return false;
     }
   }
