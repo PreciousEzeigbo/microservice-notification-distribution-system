@@ -71,28 +71,32 @@ jobs:
             ${{ runner.os }}-pip-
       
       - name: Install Python dependencies
+        shell: bash
         run: |
+          set -x
           python -m pip install --upgrade pip
           pip install ruff pytest pytest-cov pytest-asyncio
-          
           echo "Installing service dependencies..."
-          
-          # Install dependencies from each service explicitly
-          for service in user-service email-service push-service template-service; do
-            if [ -f "$service/requirements.txt" ]; then
-              echo "Found and installing dependencies for $service"
-              pip install -r "$service/requirements.txt"
-            else
-              echo "No requirements.txt found for $service"
-            fi
-          done
-          
-          # Install root requirements if exists
-          if [ -f requirements.txt ]; then
-            echo "Installing root requirements.txt"
+          if [ -f "user-service/requirements.txt" ]; then
+            echo "Found user-service/requirements.txt"
+            pip install -r user-service/requirements.txt
+          fi
+          if [ -f "email-service/requirements.txt" ]; then
+            echo "Found email-service/requirements.txt"
+            pip install -r email-service/requirements.txt
+          fi
+          if [ -f "push-service/requirements.txt" ]; then
+            echo "Found push-service/requirements.txt"
+            pip install -r push-service/requirements.txt
+          fi
+          if [ -f "template-service/requirements.txt" ]; then
+            echo "Found template-service/requirements.txt"
+            pip install -r template-service/requirements.txt
+          fi
+          if [ -f "requirements.txt" ]; then
+            echo "Found root requirements.txt"
             pip install -r requirements.txt
           fi
-          
           echo "Verifying Django installation..."
           pip list | grep -i django
       
