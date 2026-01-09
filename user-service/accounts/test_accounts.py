@@ -19,15 +19,12 @@ class UserServiceTests(APITestCase):
             "email": "testuser@example.com",
             "password": "StrongPassword123",
             "push_token": "test_push_token",
-            "preferences": {
-                "email": True,
-                "push": False
-            }
+            "preferences": {"email": True, "push": False},
         }
 
         self.login_payload = {
             "email": "testuser@example.com",
-            "password": "StrongPassword123"
+            "password": "StrongPassword123",
         }
 
     # ---------------------------------------------------
@@ -53,9 +50,7 @@ class UserServiceTests(APITestCase):
         POST /api/v1/users/
         """
         response = self.client.post(
-            "/api/v1/users/",
-            data=self.signup_payload,
-            format="json"
+            "/api/v1/users/", data=self.signup_payload, format="json"
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -89,16 +84,10 @@ class UserServiceTests(APITestCase):
         POST /api/v1/auth/login
         """
         # First create a user
-        self.client.post(
-            "/api/v1/users/",
-            data=self.signup_payload,
-            format="json"
-        )
+        self.client.post("/api/v1/users/", data=self.signup_payload, format="json")
 
         response = self.client.post(
-            "/api/v1/auth/login/",
-            data=self.login_payload,
-            format="json"
+            "/api/v1/auth/login/", data=self.login_payload, format="json"
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -118,9 +107,7 @@ class UserServiceTests(APITestCase):
         """
         # Create user
         signup_response = self.client.post(
-            "/api/v1/users/",
-            data=self.signup_payload,
-            format="json"
+            "/api/v1/users/", data=self.signup_payload, format="json"
         )
 
         user_id = signup_response.data["data"]["user"]["id"]
@@ -134,5 +121,3 @@ class UserServiceTests(APITestCase):
         self.assertEqual(user_data["email"], self.signup_payload["email"])
         self.assertEqual(user_data["name"], self.signup_payload["name"])
         self.assertIn("preferences", user_data)
-
-

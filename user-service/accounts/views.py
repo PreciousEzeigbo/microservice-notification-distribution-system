@@ -106,4 +106,3 @@ class HealthCheckView(APIView):
             success=True,
             message="User Service is healthy",
         )
-

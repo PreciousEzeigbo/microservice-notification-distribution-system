@@ -53,11 +53,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     """
 
     # Primary key as UUID for global uniqueness
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     # User email (used for authentication)
     email = models.EmailField(unique=True)
@@ -66,11 +62,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=255)
 
     # Optional push notification token (FCM, Expo, etc.)
-    push_token = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True
-    )
+    push_token = models.CharField(max_length=255, null=True, blank=True)
 
     # User status flags
     is_active = models.BooleanField(default=True)
@@ -97,9 +89,7 @@ class UserPreference(models.Model):
 
     # One-to-one relationship with User
     user = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        related_name="preferences"
+        User, on_delete=models.CASCADE, related_name="preferences"
     )
 
     # Whether the user wants email notifications
