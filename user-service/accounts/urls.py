@@ -12,5 +12,7 @@ urlpatterns = [
         "users/<uuid:user_id>/", UserDetailView.as_view()
     ),  # Fetch user details endpoint
     path("auth/login/", LoginView.as_view()),  # User login endpoint
-    path("health/", HealthCheckView.as_view()),  # Health check endpoint to verify service is up and running
+    path(
+        "health/", HealthCheckView.as_view()
+    ),  # Health check endpoint to verify service is up and running
 ]
