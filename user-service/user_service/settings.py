@@ -35,7 +35,7 @@ if not SECRET_KEY:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 
 # Application definition
@@ -86,7 +86,9 @@ WSGI_APPLICATION = "user_service.wsgi.application"
 
 DATABASES = {
     "default": dj_database_url.parse(
-        os.getenv("DATABASE_URL"), conn_max_age=600, ssl_require=True
+        os.getenv("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=os.getenv("DB_SSL_REQUIRE", "True") == "True",
     )
 }
 

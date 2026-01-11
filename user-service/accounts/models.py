@@ -1,7 +1,6 @@
 import uuid
 from django.db import models
 
-# Base classes for building a custom Django user model
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.contrib.auth.base_user import BaseUserManager
 
@@ -24,7 +23,7 @@ class UserManager(BaseUserManager):
         # Normalize email (lowercase domain, etc.)
         email = self.normalize_email(email)
 
-        # Create user instance (extra_fields can include push_token, name, etc.)
+        # Create user instance
         user = self.model(email=email, **extra_fields)
 
         # Hash and set password
@@ -37,9 +36,17 @@ class UserManager(BaseUserManager):
     def create_superuser(self, email, password=None, **extra_fields):
         """
         Create and return a superuser (admin).
+
+        Enforces required permissions to prevent misconfigured superusers.
         """
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
+
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
 
         return self.create_user(email, password, **extra_fields)
 
@@ -87,9 +94,10 @@ class UserPreference(models.Model):
     (SMS, WhatsApp, in-app notifications, etc.).
     """
 
-    # One-to-one relationship with User
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name="preferences"
+        User,
+        on_delete=models.CASCADE,
+        related_name="preferences",
     )
 
     # Whether the user wants email notifications

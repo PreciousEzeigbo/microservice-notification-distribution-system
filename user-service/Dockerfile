@@ -42,4 +42,4 @@ EXPOSE 3001
 # Run Django development server
 # (PORT is read from .env / environment)
 # -----------------------------
-CMD ["sh", "-c", "python manage.py runserver 0.0.0.0:${PORT:-3001}"]
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-3001} user_service.wsgi:application"]
