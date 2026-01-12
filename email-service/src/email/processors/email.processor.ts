@@ -45,7 +45,7 @@ export class EmailProcessor {
         );
         await this.apiGatewayClient.updateStatus({
           notification_id: message.message_id,
-          status: NotificationStatus.DELIVERED,
+          status: NotificationStatus.SKIPPED,
           timestamp: new Date().toISOString(),
           error: MSG.USER_DISABLED_EMAIL_NOTIFICATIONS(message.user_id),
         });
