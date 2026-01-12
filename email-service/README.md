@@ -476,7 +476,7 @@ email-service/
 
 ## Contributing
 
-1. Follow the existing code style (snake_case for API responses, camelCase for internal TypeScript)
+1. Follow the existing code style (snake_case for API responses, camelCase for internal TypeScript.)
 2. Run `npm run format` before committing
 3. Ensure all tests pass with `npm run test`
 4. Update documentation for new features
