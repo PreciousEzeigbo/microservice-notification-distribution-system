@@ -137,11 +137,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          # Only enable cache if lock file exists at root or in api-gateway
-          cache: ${{ hashFiles('package-lock.json') != '' || hashFiles('api-gateway/package-lock.json') != '' && 'npm' || '' }}
+          # Only enable cache if lock file exists at root or in email-service
+          cache: ${{ hashFiles('package-lock.json') != '' || hashFiles('email-service/package-lock.json') != '' && 'npm' || '' }}
           cache-dependency-path: |
             package-lock.json
-            api-gateway/package-lock.json
+            email-service/package-lock.json
       
       - name: Install Node.js dependencies
         run: |
@@ -149,9 +149,9 @@ jobs:
             echo "Installing root dependencies..."
             npm ci
           fi
-          if [ -f "api-gateway/package-lock.json" ]; then
-            echo "Installing api-gateway dependencies..."
-            cd api-gateway
+          if [ -f "email-service/package-lock.json" ]; then
+            echo "Installing email-service dependencies..."
+            cd email-service
             npm ci
             cd ..
           fi
@@ -160,32 +160,32 @@ jobs:
         run: |
           if [ -f "package.json" ]; then
             npm run lint
-          elif [ -f "api-gateway/package.json" ]; then
-            cd api-gateway && npm run lint
+          elif [ -f "email-service/package.json" ]; then
+            cd email-service && npm run lint
           fi
       
       - name: Check formatting with Prettier
         run: |
           if [ -f "package.json" ]; then
             npm run format:check
-          elif [ -f "api-gateway/package.json" ]; then
-            cd api-gateway && npm run format:check
+          elif [ -f "email-service/package.json" ]; then
+            cd email-service && npm run format:check
           fi
       
       - name: Type check with TypeScript
         run: |
           if [ -f "package.json" ]; then
             npm run type-check
-          elif [ -f "api-gateway/package.json" ]; then
-            cd api-gateway && npm run type-check
+          elif [ -f "email-service/package.json" ]; then
+            cd email-service && npm run type-check
           fi
       
       - name: Run unit tests
         run: |
           if [ -f "package.json" ]; then
             npm run test:cov
-          elif [ -f "api-gateway/package.json" ]; then
-            cd api-gateway && npm run test:cov
+          elif [ -f "email-service/package.json" ]; then
+            cd email-service && npm run test:cov
           fi
       
       - name: Upload coverage reports
