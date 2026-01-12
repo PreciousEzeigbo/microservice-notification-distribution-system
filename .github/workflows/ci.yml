@@ -25,19 +25,28 @@ jobs:
         with:
           filters: |
             python:
-              - '**/*.py'
-              - '**/requirements.txt'
+              - 'user-service/**/*.py'
+              - 'email-service/**/*.py'
+              - 'push-service/**/*.py'
+              - 'template-service/**/*.py'
+              - 'user-service/**/requirements.txt'
+              - 'email-service/**/requirements.txt'
+              - 'push-service/**/requirements.txt'
+              - 'template-service/**/requirements.txt'
               - 'pyproject.toml'
               - 'ruff.toml'
               - 'pytest.ini'
-              - '.github/workflows/**'
             nodejs:
-              - '**/*.ts'
-              - '**/*.js'
-              - '*.json'
-              - '.eslintrc.js'
-              - '.prettierrc'
-              - '.github/workflows/**'
+              - 'email-service/**/*.ts'
+              - 'email-service/**/*.js'
+              - 'email-service/**/*.json'
+              - 'api-gateway/**/*.ts'
+              - 'api-gateway/**/*.js'
+              - 'api-gateway/**/*.json'
+              - 'email-service/.eslintrc.js'
+              - 'email-service/.prettierrc'
+              - 'api-gateway/.eslintrc.js'
+              - 'api-gateway/.prettierrc'
             user-service:
               - 'user-service/**'
             email-service:
@@ -98,8 +107,8 @@ jobs:
             echo "Found root requirements.txt"
             pip install -r requirements.txt
           fi
-          echo "Verifying Django installation..."
-          pip list | grep -i django
+          echo "Verifying installed packages..."
+          pip list
       
       - name: Lint with ruff
         run: |
