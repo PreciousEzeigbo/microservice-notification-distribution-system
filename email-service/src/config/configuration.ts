@@ -3,9 +3,7 @@ import { registerAs } from '@nestjs/config';
 export default registerAs('app', () => ({
   // RabbitMQ Configuration
   rabbitmq: {
-    url:
-      process.env.RABBITMQ_URL ||
-      `amqp://${process.env.RABBITMQ_USER || 'guest'}:${process.env.RABBITMQ_PASSWORD || 'guest'}@${process.env.RABBITMQ_HOST || 'localhost'}:${process.env.RABBITMQ_PORT || '5672'}`,
+    url: process.env.RABBITMQ_URL,
     host: process.env.RABBITMQ_HOST || 'localhost',
     port: parseInt(process.env.RABBITMQ_PORT || '5672', 10),
     user: process.env.RABBITMQ_USER || 'guest',
