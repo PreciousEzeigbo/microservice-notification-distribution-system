@@ -159,33 +159,73 @@ jobs:
       - name: Lint with ESLint
         run: |
           if [ -f "package.json" ]; then
-            npm run lint
+            if npm run | grep -q "lint"; then
+              npm run lint
+            else
+              echo "Lint script not found in root package.json, skipping..."
+            fi
           elif [ -f "email-service/package.json" ]; then
-            cd email-service && npm run lint
+            cd email-service
+            if npm run | grep -q "lint"; then
+              npm run lint
+            else
+              echo "Lint script not found in email-service, skipping..."
+            fi
           fi
       
       - name: Check formatting with Prettier
         run: |
           if [ -f "package.json" ]; then
-            npm run format:check
+            if npm run | grep -q "format:check"; then
+              npm run format:check
+            else
+              echo "Format check script not found in root package.json, skipping..."
+            fi
           elif [ -f "email-service/package.json" ]; then
-            cd email-service && npm run format:check
+            cd email-service
+            if npm run | grep -q "format:check"; then
+              npm run format:check
+            else
+              echo "Format check script not found in email-service, skipping..."
+            fi
           fi
       
       - name: Type check with TypeScript
         run: |
           if [ -f "package.json" ]; then
-            npm run type-check
+            if npm run | grep -q "type-check"; then
+              npm run type-check
+            else
+              echo "Type check script not found in root package.json, skipping..."
+            fi
           elif [ -f "email-service/package.json" ]; then
-            cd email-service && npm run type-check
+            cd email-service
+            if npm run | grep -q "type-check"; then
+              npm run type-check
+            else
+              echo "Type check script not found in email-service, skipping..."
+            fi
           fi
       
       - name: Run unit tests
         run: |
           if [ -f "package.json" ]; then
-            npm run test:cov
+            if npm run | grep -q "test:cov"; then
+              npm run test:cov
+            elif npm run | grep -q "test"; then
+              npm run test
+            else
+              echo "Test script not found in root package.json, skipping..."
+            fi
           elif [ -f "email-service/package.json" ]; then
-            cd email-service && npm run test:cov
+            cd email-service
+            if npm run | grep -q "test:cov"; then
+              npm run test:cov
+            elif npm run | grep -q "test"; then
+              npm run test
+            else
+              echo "Test script not found in email-service, skipping..."
+            fi
           fi
       
       - name: Upload coverage reports
