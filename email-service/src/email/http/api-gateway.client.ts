@@ -69,9 +69,7 @@ export class ApiGatewayClient {
       this.logger.warn(MSG.API_GATEWAY_STATUS_UPDATE_CONTINUING);
     }
 
-    this.logger.log(
-      MSG.API_GATEWAY_STATUS_UPDATED(statusUpdate.message_id),
-    );
+    this.logger.log(MSG.API_GATEWAY_STATUS_UPDATED(statusUpdate.message_id));
   }
 
   async isHealthy(): Promise<boolean> {
