@@ -14,8 +14,7 @@ import { NotificationMessage } from '../../shared/interfaces/notification-messag
 import * as MSG from '../../constants/system.messages';
 
 const MAX_RETRY_ATTEMPTS = RETRY_CONFIG.MAX_RETRIES;
-const RETRY_DELAY_MS = RETRY_CONFIG.INITIAL_DELAY;
-const CONNECTION_RETRY_DELAY_MS = 10000;
+const CONNECTION_RETRY_DELAY_MS = 5000;
 
 @Injectable()
 export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
@@ -54,7 +53,12 @@ export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
         'amqp://guest:guest@localhost:5672',
       );
 
-      this.logger.log(MSG.RABBITMQ_CONNECTING(rabbitmqUrl));
+      // Sanitize URL for logging (hide credentials)
+      const sanitizedUrl = rabbitmqUrl.replace(
+        /:\/\/([^:]+):([^@]+)@/,
+        '://$1:****@',
+      );
+      this.logger.log(MSG.RABBITMQ_CONNECTING(sanitizedUrl));
       this.connection = await amqp.connect(rabbitmqUrl);
 
       // Setup connection event handlers for resilience
@@ -122,11 +126,12 @@ export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
         QUEUE_CONFIG.EMAIL_ROUTING_KEY,
       );
 
-      // Assert delay queue for retry with TTL
+      // Assert delay queue for retry with max TTL
+      // Note: Individual messages can have shorter TTLs via expiration header
       await this.channel.assertQueue('email_delay_queue', {
         durable: true,
         arguments: {
-          'x-message-ttl': RETRY_DELAY_MS,
+          'x-message-ttl': RETRY_CONFIG.MAX_DELAY,
           'x-dead-letter-exchange': QUEUE_CONFIG.EXCHANGE,
           'x-dead-letter-routing-key': QUEUE_CONFIG.EMAIL_ROUTING_KEY,
         },
@@ -156,32 +161,39 @@ export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
 
     await this.channel.consume(
       QUEUE_CONFIG.EMAIL_QUEUE,
-      async (msg) => {
-        if (!msg) {
-          this.logger.warn(MSG.QUEUE_MESSAGE_NULL);
-          return;
-        }
-
-        const message_content = msg.content.toString();
-        this.logger.log(MSG.QUEUE_MESSAGE_RECEIVED(message_content));
-
-        try {
-          const message: NotificationMessage = JSON.parse(message_content);
-          const retry_count = this.getRetryCount(msg);
-
-          // Call the registered message handler
-          if (this.message_handler) {
-            await this.message_handler(message);
+      (msg) => {
+        void (async () => {
+          if (!msg) {
+            this.logger.warn(MSG.QUEUE_MESSAGE_NULL);
+            return;
           }
 
-          // Acknowledge message on success
-          if (this.channel) {
-            this.channel.ack(msg);
-            this.logger.log(MSG.QUEUE_MESSAGE_PROCESSED(message.message_id));
+          const message_content = msg.content.toString();
+
+          try {
+            const message: NotificationMessage = JSON.parse(
+              message_content,
+            ) as NotificationMessage;
+
+            // Log only metadata, not content (avoid PII exposure)
+            this.logger.log(
+              `Processing message - ID: ${message.message_id}, User: ${message.user_id}, Template: ${message.template_code}`,
+            );
+
+            // Call the registered message handler
+            if (this.message_handler) {
+              await this.message_handler(message);
+            }
+
+            // Acknowledge message on success
+            if (this.channel) {
+              this.channel.ack(msg);
+              this.logger.log(MSG.QUEUE_MESSAGE_PROCESSED(message.message_id));
+            }
+          } catch (error) {
+            this.handleMessageError(msg, error);
           }
-        } catch (error) {
-          await this.handleMessageError(msg, error);
-        }
+        })();
       },
       { noAck: false },
     );
@@ -196,17 +208,15 @@ export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
     if (!msg.properties.headers) {
       return 0;
     }
-    const retry_count = msg.properties.headers['x-retry-count'];
+    const headers = msg.properties.headers as Record<string, unknown>;
+    const retry_count = headers['x-retry-count'];
     return typeof retry_count === 'number' ? retry_count : 0;
   }
 
   /**
    * Handle message processing errors with retry logic
    */
-  private async handleMessageError(
-    msg: amqp.ConsumeMessage,
-    error: unknown,
-  ): Promise<void> {
+  private handleMessageError(msg: amqp.ConsumeMessage, error: unknown): void {
     this.logger.error(MSG.QUEUE_MESSAGE_PROCESSING_ERROR, error);
 
     if (!this.channel) {
@@ -219,8 +229,16 @@ export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
     if (retry_count < MAX_RETRY_ATTEMPTS) {
       // Increment retry count and send to delay queue
       const new_retry_count = retry_count + 1;
+
+      // Calculate exponential backoff delay
+      const delay = Math.min(
+        RETRY_CONFIG.INITIAL_DELAY *
+          Math.pow(RETRY_CONFIG.BACKOFF_MULTIPLIER, retry_count),
+        RETRY_CONFIG.MAX_DELAY,
+      );
+
       this.logger.warn(
-        `Delaying message retry ${new_retry_count}/${MAX_RETRY_ATTEMPTS} for ${RETRY_DELAY_MS}ms`,
+        `Delaying message retry ${new_retry_count}/${MAX_RETRY_ATTEMPTS} for ${delay}ms (exponential backoff)`,
       );
 
       // Prepare headers for retry tracking
@@ -229,11 +247,13 @@ export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
       headers['x-last-error'] =
         error instanceof Error ? error.message : String(error);
       headers['x-last-retry-time'] = new Date().toISOString();
+      headers['x-retry-delay'] = delay;
 
-      // Publish to delay queue
+      // Publish to delay queue with per-message TTL for exponential backoff
       this.channel.sendToQueue('email_delay_queue', msg.content, {
         headers,
         persistent: true,
+        expiration: delay.toString(), // Per-message TTL in milliseconds
       });
 
       // Acknowledge the failed message to remove it from main queue
@@ -262,16 +282,18 @@ export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
       `Connection lost. Attempting reconnection in ${CONNECTION_RETRY_DELAY_MS}ms...`,
     );
 
-    this.reconnect_timeout = setTimeout(async () => {
-      try {
-        await this.connect();
-        if (this.message_handler) {
-          await this.startConsuming();
+    this.reconnect_timeout = setTimeout(() => {
+      void (async () => {
+        try {
+          await this.connect();
+          if (this.message_handler) {
+            await this.startConsuming();
+          }
+        } catch (error) {
+          this.logger.error('Reconnection attempt failed', error);
+          this.handleConnectionLoss();
         }
-      } catch (error) {
-        this.logger.error('Reconnection attempt failed', error);
-        this.handleConnectionLoss();
-      }
+      })();
     }, CONNECTION_RETRY_DELAY_MS);
   }
 
@@ -297,7 +319,7 @@ export class EmailConsumer implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async isHealthy(): Promise<boolean> {
+  isHealthy(): boolean {
     return this.connection !== null && this.channel !== null;
   }
 }

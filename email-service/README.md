@@ -363,7 +363,7 @@ All errors follow a consistent snake_case format:
 Monitor the health of the email service and its dependencies:
 
 ```bash
-curl http://localhost:3003/health
+curl http://localhost:3003/api/v1/email/health
 ```
 
 ### RabbitMQ Monitoring

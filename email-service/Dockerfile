@@ -19,6 +19,9 @@ RUN npm run build
 # Production stage
 FROM node:20-alpine AS production
 
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
 # Create app directory
 WORKDIR /app
 
@@ -44,7 +47,7 @@ EXPOSE 3003
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3003/health || exit 1
+  CMD curl -f http://localhost:3003/api/v1/email/health || exit 1
 
 # Start the application
 CMD ["npm", "run", "start:prod"]

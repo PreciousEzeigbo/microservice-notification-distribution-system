@@ -30,7 +30,7 @@ export class EmailProcessor {
 
     try {
       // 1. Validate message
-      this.validateMessage(message);
+      await this.validateMessage(message);
 
       // 2. Fetch user details
       this.logger.log(

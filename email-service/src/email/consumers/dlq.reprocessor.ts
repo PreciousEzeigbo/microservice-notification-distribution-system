@@ -80,9 +80,9 @@ export class DlqReprocessor implements OnModuleInit, OnModuleDestroy {
   private startReprocessing(): void {
     this.logger.log(MSG.DLQ_REPROCESSOR_STARTED(DLQ_CHECK_INTERVAL_MS));
 
-    this.check_interval = setInterval(async () => {
+    this.check_interval = setInterval(() => {
       if (!this.is_shutting_down) {
-        await this.checkAndReprocessDLQ();
+        void this.checkAndReprocessDLQ();
       }
     }, DLQ_CHECK_INTERVAL_MS);
   }
@@ -125,7 +125,7 @@ export class DlqReprocessor implements OnModuleInit, OnModuleDestroy {
       });
 
       while (message && processed_count < BATCH_SIZE) {
-        await this.reprocessMessage(message);
+        this.reprocessMessage(message);
         processed_count++;
         message = await this.channel.get(QUEUE_CONFIG.FAILED_QUEUE, {
           noAck: false,
@@ -140,14 +140,17 @@ export class DlqReprocessor implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async reprocessMessage(msg: amqp.GetMessage): Promise<void> {
+  private reprocessMessage(msg: amqp.GetMessage): void {
     if (!this.channel) {
       return;
     }
 
     try {
-      const headers = msg.properties.headers || {};
-      const dlq_retry_count = headers['x-dlq-retry-count'] || 0;
+      const headers = (msg.properties.headers || {}) as Record<string, unknown>;
+      const dlq_retry_count =
+        typeof headers['x-dlq-retry-count'] === 'number'
+          ? headers['x-dlq-retry-count']
+          : 0;
 
       // Check if message has exceeded DLQ reprocess attempts
       if (dlq_retry_count >= MAX_DLQ_REPROCESS_ATTEMPTS) {
@@ -233,7 +236,7 @@ export class DlqReprocessor implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async isHealthy(): Promise<boolean> {
+  isHealthy(): boolean {
     return this.connection !== null && this.channel !== null;
   }
 }

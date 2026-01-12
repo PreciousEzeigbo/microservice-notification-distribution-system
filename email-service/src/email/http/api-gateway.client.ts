@@ -1,4 +1,4 @@
-import { Injectable, Logger, HttpStatus } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom, catchError, of } from 'rxjs';
@@ -64,7 +64,7 @@ export class ApiGatewayClient {
             ),
         );
       });
-    } catch (error) {
+    } catch {
       // Circuit breaker is open or operation failed
       this.logger.warn(MSG.API_GATEWAY_STATUS_UPDATE_CONTINUING);
     }
@@ -81,7 +81,7 @@ export class ApiGatewayClient {
           timeout: 3000,
         }),
       );
-      return response.status === HttpStatus.OK;
+      return response.status === 200;
     } catch (error) {
       const errorInfo = formatHttpError(error);
       this.logger.warn(

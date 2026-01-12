@@ -1,4 +1,4 @@
-import { Injectable, Logger, HttpStatus } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom, catchError } from 'rxjs';
@@ -75,7 +75,7 @@ export class UserServiceClient {
           timeout: 3000,
         }),
       );
-      return response.status === HttpStatus.OK;
+      return response.status === 200;
     } catch (error) {
       const errorInfo = formatHttpError(error);
       this.logger.warn(

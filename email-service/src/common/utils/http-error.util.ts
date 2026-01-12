@@ -48,7 +48,7 @@ export function formatHttpError(error: unknown): HttpErrorInfo {
   // Handle unknown error types
   return {
     code: 'UNKNOWN_ERROR',
-    message: String(error),
+    message: error instanceof Error ? error.message : JSON.stringify(error),
   };
 }
 

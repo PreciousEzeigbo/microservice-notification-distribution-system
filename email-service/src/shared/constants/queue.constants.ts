@@ -19,3 +19,7 @@ export const CIRCUIT_BREAKER_CONFIG = {
   ERROR_THRESHOLD: 5, // Open after 5 errors
   RESET_TIMEOUT: 30000, // Try again after 30 seconds
 } as const;
+
+export const SMTP_CONFIG = {
+  VERIFICATION_TIMEOUT: 5000, // 5 seconds for health check verification
+} as const;

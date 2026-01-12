@@ -73,7 +73,7 @@ export interface TemplateData {
 export interface NotificationStatusUpdate {
   notification_id: string;
   status: NotificationStatus;
-  timestamp?: string;
+  timestamp: string; // Required for accurate status tracking
   error?: string;
   provider_response?: {
     message_id?: string;

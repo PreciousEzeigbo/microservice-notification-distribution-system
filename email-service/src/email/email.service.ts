@@ -23,8 +23,8 @@ export class EmailService implements OnModuleInit {
   async onModuleInit() {
     this.logger.log(MSG.EMAIL_SERVICE_INITIALIZING);
 
-    // Ensure consumer is connected before starting (call connect explicitly)
-    await this.emailConsumer['connect']();
+    // Connection is already established via EmailConsumer.onModuleInit()
+    // No need to call connect() again due to early-return guard
 
     // Set the message handler
     this.emailConsumer.setMessageHandler(async (message) => {
@@ -46,7 +46,7 @@ export class EmailService implements OnModuleInit {
       templateServiceHealthy,
       apiGatewayHealthy,
     ] = await Promise.all([
-      this.emailConsumer.isHealthy(),
+      Promise.resolve(this.emailConsumer.isHealthy()),
       this.emailProvider.verifyConnection(),
       this.userServiceClient.isHealthy(),
       this.templateServiceClient.isHealthy(),

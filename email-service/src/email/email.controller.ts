@@ -1,4 +1,4 @@
-import { Controller, Get, HttpStatus, HttpCode, Res } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { EmailService } from './email.service';
@@ -24,7 +24,7 @@ export class EmailController {
       return res.status(HttpStatus.SERVICE_UNAVAILABLE).json({
         status_code: HttpStatus.SERVICE_UNAVAILABLE,
         message: MSG.EMAIL_SERVICE_UNHEALTHY,
-        error: `Unhealthy dependencies: ${health.unhealthy_dependencies.join(', ')}`,
+        error: `Unhealthy dependencies: ${(health.unhealthy_dependencies || []).join(', ')}`,
         data: health.details,
       });
     }
@@ -36,7 +36,7 @@ export class EmailController {
         message: MSG.EMAIL_SERVICE_DEGRADED,
         data: {
           ...health.details,
-          warning: `Some external services unavailable: ${health.unhealthy_dependencies.join(', ')}`,
+          warning: `Some external services unavailable: ${(health.unhealthy_dependencies || []).join(', ')}`,
         },
       });
     }
