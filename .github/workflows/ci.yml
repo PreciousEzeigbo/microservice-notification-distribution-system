@@ -147,12 +147,12 @@ jobs:
         run: |
           if [ -f "package-lock.json" ]; then
             echo "Installing root dependencies..."
-            npm ci
+            npm install
           fi
           if [ -f "email-service/package-lock.json" ]; then
             echo "Installing email-service dependencies..."
             cd email-service
-            npm ci
+            npm install
             cd ..
           fi
       
