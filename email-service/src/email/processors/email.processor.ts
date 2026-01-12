@@ -29,8 +29,8 @@ export class EmailProcessor {
     );
 
     try {
-      // 1. Validate message
-      await this.validateMessage(message);
+      // 1. Validate message and fetch template (cached for reuse)
+      const template = await this.validateMessage(message);
 
       // 2. Fetch user details
       this.logger.log(
@@ -38,8 +38,8 @@ export class EmailProcessor {
       );
       const user = await this.userServiceClient.getUser(message.user_id);
 
-      // 3. Check user preferences
-      if (!user.preferences.email) {
+      // 3. Check user preferences (with null safety)
+      if (!user.preferences?.email) {
         this.logger.warn(
           `${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.USER_DISABLED_EMAIL_NOTIFICATIONS(message.user_id)}`,
         );
@@ -47,18 +47,12 @@ export class EmailProcessor {
           notification_id: message.message_id,
           status: NotificationStatus.DELIVERED,
           timestamp: new Date().toISOString(),
-          error: 'User has disabled email notifications',
+          error: MSG.USER_DISABLED_EMAIL_NOTIFICATIONS(message.user_id),
         });
         return;
       }
 
-      // 4. Fetch template
-      this.logger.log(
-        `${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.TEMPLATE_SERVICE_FETCHING(message.template_code)}`,
-      );
-      const template = await this.templateServiceClient.getTemplate(
-        message.template_code,
-      );
+      // 4. Template already fetched during validation
 
       // 5. Compile template with variables
       this.logger.log(
@@ -130,7 +124,7 @@ export class EmailProcessor {
     }
   }
 
-  private async validateMessage(message: NotificationMessage): Promise<void> {
+  private async validateMessage(message: NotificationMessage) {
     const required = [
       'message_id',
       'request_id',
@@ -146,7 +140,7 @@ export class EmailProcessor {
       throw new MessageValidationException(missing);
     }
 
-    // Fetch template to extract required placeholders
+    // Fetch template to extract required placeholders (return it to avoid duplicate fetch)
     const template = await this.templateServiceClient.getTemplate(
       message.template_code,
     );
@@ -163,6 +157,8 @@ export class EmailProcessor {
     if (missingVars.length > 0) {
       throw new MessageValidationException(missingVars);
     }
+
+    return template;
   }
 
   // Extract Handlebars-style {{variable}} placeholders from a template string

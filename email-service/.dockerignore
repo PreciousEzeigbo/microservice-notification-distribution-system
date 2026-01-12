@@ -45,9 +45,11 @@ Thumbs.db
 .git/
 .gitignore
 
-# Documentation
-README.md
-*.md
+# Documentation (keep README.md, exclude others)
+CHANGELOG.md
+CONTRIBUTING.md
+LICENSE.md
+docs/
 
 # Test files
 test/

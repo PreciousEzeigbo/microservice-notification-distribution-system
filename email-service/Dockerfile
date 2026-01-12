@@ -29,8 +29,8 @@ WORKDIR /app
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nestjs -u 1001
 
-# Copy package files
-COPY package*.json ./
+# Copy package files for production dependency installation
+COPY --from=builder /app/package*.json ./
 
 # Install only production dependencies
 RUN npm ci --omit=dev && npm cache clean --force
