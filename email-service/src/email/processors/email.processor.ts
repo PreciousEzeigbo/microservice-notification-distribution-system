@@ -44,7 +44,7 @@ export class EmailProcessor {
           `${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.USER_DISABLED_EMAIL_NOTIFICATIONS(message.user_id)}`,
         );
         await this.apiGatewayClient.updateStatus({
-          notification_id: message.message_id,
+          message_id: message.message_id,
           status: NotificationStatus.SKIPPED,
           timestamp: new Date().toISOString(),
           error: MSG.USER_DISABLED_EMAIL_NOTIFICATIONS(message.user_id),
@@ -90,7 +90,7 @@ export class EmailProcessor {
         `${MSG.CORRELATION_PREFIX(correlationId)} ${MSG.EMAIL_SENT_SUCCESSFULLY}`,
       );
       await this.apiGatewayClient.updateStatus({
-        notification_id: message.message_id,
+        message_id: message.message_id,
         status: NotificationStatus.DELIVERED,
         timestamp: new Date().toISOString(),
         provider_response: result,
@@ -108,7 +108,7 @@ export class EmailProcessor {
       // Update status to failed
       await this.apiGatewayClient
         .updateStatus({
-          notification_id: message.message_id,
+          message_id: message.message_id,
           status: NotificationStatus.FAILED,
           timestamp: new Date().toISOString(),
           error: error instanceof Error ? error.message : MSG.UNKNOWN_ERROR,

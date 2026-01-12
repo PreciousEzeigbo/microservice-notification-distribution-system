@@ -38,7 +38,7 @@ export class ApiGatewayClient {
   async updateStatus(statusUpdate: NotificationStatusUpdate): Promise<void> {
     this.logger.log(
       MSG.API_GATEWAY_STATUS_UPDATING(
-        statusUpdate.notification_id,
+        statusUpdate.message_id,
         statusUpdate.status,
       ),
     );
@@ -48,14 +48,14 @@ export class ApiGatewayClient {
         await firstValueFrom(
           this.httpService
             .post<ApiResponse>(
-              `${this.baseUrl}/api/v1/notifications/${statusUpdate.notification_id}/status`,
+              `${this.baseUrl}/api/v1/notifications/${statusUpdate.message_id}/status`,
               statusUpdate,
             )
             .pipe(
               catchError((error) => {
                 const errorInfo = formatHttpError(error);
                 this.logger.error(
-                  `${MSG.API_GATEWAY_STATUS_UPDATE_FAILED(statusUpdate.notification_id)}: ${formatHttpErrorMessage(errorInfo)}`,
+                  `${MSG.API_GATEWAY_STATUS_UPDATE_FAILED(statusUpdate.message_id)}: ${formatHttpErrorMessage(errorInfo)}`,
                 );
                 this.logger.warn(MSG.API_GATEWAY_STATUS_UPDATE_CONTINUING);
                 // Don't throw - return empty observable to prevent message reprocessing
@@ -70,7 +70,7 @@ export class ApiGatewayClient {
     }
 
     this.logger.log(
-      MSG.API_GATEWAY_STATUS_UPDATED(statusUpdate.notification_id),
+      MSG.API_GATEWAY_STATUS_UPDATED(statusUpdate.message_id),
     );
   }
 

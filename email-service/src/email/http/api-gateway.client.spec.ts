@@ -47,7 +47,7 @@ describe('ApiGatewayClient', () => {
       httpService.post.mockReturnValue(of(mockResponse));
 
       await client.updateStatus({
-        notification_id: 'msg_123',
+        message_id: 'msg_123',
         status: NotificationStatus.DELIVERED,
         timestamp: new Date().toISOString(),
       });
@@ -73,7 +73,7 @@ describe('ApiGatewayClient', () => {
       // Should not throw, just log warning
       await expect(
         client.updateStatus({
-          notification_id: 'msg_123',
+          message_id: 'msg_123',
           status: NotificationStatus.FAILED,
           timestamp: new Date().toISOString(),
           error: 'Processing failed',
@@ -96,7 +96,7 @@ describe('ApiGatewayClient', () => {
       // Trigger circuit breaker
       for (let i = 0; i < 5; i++) {
         await client.updateStatus({
-          notification_id: 'msg_123',
+          message_id: 'msg_123',
           status: NotificationStatus.FAILED,
           timestamp: new Date().toISOString(),
         });
@@ -105,7 +105,7 @@ describe('ApiGatewayClient', () => {
       // Should still not throw
       await expect(
         client.updateStatus({
-          notification_id: 'msg_123',
+          message_id: 'msg_123',
           status: NotificationStatus.FAILED,
           timestamp: new Date().toISOString(),
         }),

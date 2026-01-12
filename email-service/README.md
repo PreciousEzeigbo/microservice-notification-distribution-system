@@ -281,7 +281,7 @@ Interactive API documentation is available at: http://localhost:3003/api/docs
 
 #### Health Check
 ```http
-GET /health
+GET /api/v1/email/health
 ```
 
 Response (snake_case):
@@ -305,24 +305,6 @@ Response (snake_case):
     "api_gateway": {
       "status": "healthy"
     }
-  }
-}
-```
-
-#### Send Email (Direct)
-```http
-POST /email/send
-Content-Type: application/json
-
-{
-  "message_id": "msg_123",
-  "request_id": "req_123",
-  "user_id": "user_123",
-  "to": "user@example.com",
-  "template_id": "welcome",
-  "variables": {
-    "name": "John Doe",
-    "activation_link": "https://app.com/activate/token"
   }
 }
 ```
