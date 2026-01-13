@@ -1,0 +1,19 @@
+# Environment variables
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Django
+db.sqlite3
+
+# Virtual environments
+venv/
+.env/
+
+.ruff_cache
+
+# pytest
+.pytest_cache/
