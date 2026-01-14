@@ -1,22 +1,22 @@
 from django.db import models
-from django.core.exceptions import ValidationError
-import json
+import uuid
 
 class Template(models.Model):
-    id = models.CharField(max_length=36, primary_key=True)  # UUID string
-    name = models.CharField(max_length=255)
-    subject = models.TextField()
-    content = models.TextField()                    # Handlebars template
-    required_variables = models.JSONField(default=list)  # ["name", "order_id"]
-    version = models.PositiveIntegerField(default=1)
-
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255, unique=True)  # e.g., "welcome_email", "password_reset"
+    subject = models.CharField(max_length=255)
+    html_body = models.TextField()
+    text_body = models.TextField(blank=True, null=True)
+    
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def clean(self):
-        if not self.required_variables:
-            raise ValidationError("At least one variable is required")
+    class Meta:
+        db_table = 'templates'
+        indexes = [
+            models.Index(fields=['name']),
+        ]
 
     def __str__(self):
-        return f"{self.name} (v{self.version})"
+        return self.name
