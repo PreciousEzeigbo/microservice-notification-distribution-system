@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Template
+from .models import TemplateVersion,EmailTemplate
 
 
-admin.site.register(Template)
+admin.site.register(TemplateVersion)
+admin.site.register(EmailTemplate)

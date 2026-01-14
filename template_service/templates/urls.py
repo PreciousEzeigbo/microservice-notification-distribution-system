@@ -1,7 +1,12 @@
-from django.urls import path
-from .views import TemplateDetailView, TemplateCompileView
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import EmailTemplateViewSet
+
+router = DefaultRouter()
+router.register(r'templates', EmailTemplateViewSet, basename='template')
+
+app_name = 'templates_app'
 
 urlpatterns = [
-    path('templates/<str:name>/', TemplateDetailView.as_view(), name='template-detail'),
-    path('templates/<str:name>/compile/', TemplateCompileView.as_view(), name='template-compile'),
+    path('api/v1/', include(router.urls)),
 ]
