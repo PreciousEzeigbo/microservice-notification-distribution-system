@@ -2,16 +2,6 @@
 
 A production-ready email template microservice built with Django REST Framework, designed to integrate seamlessly with the NestJS Email Service in the Notification Distribution System.
 
-## Table of Contents
-- [Overview](#overview)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-- [API Endpoints](#api-endpoints)
-- [Integration with Email Service](#integration-with-email-service)
-- [Testing](#testing)
-- [Deployment](#deployment)
-
 ## Overview
 
 The Template Service manages email templates with Handlebars placeholder support. It provides a REST API for creating, retrieving, updating, and validating email templates used by the Email Service.
@@ -248,7 +238,7 @@ The Email Service uses circuit breakers when calling this Template Service. Ensu
 pytest
 
 # Run with coverage
-pytest --cov=templates_app --cov-report=html
+pytest --cov=templates --cov-report=html
 
 # Run specific test file
 pytest tests.py
@@ -273,50 +263,10 @@ isort .
 black . && isort . && flake8 .
 ```
 
-## Project Structure
-
-```
-template-service/
-├── template_service/          # Django project settings
-│   ├── settings.py
-│   ├── urls.py
-│   ├── wsgi.py
-│   └── asgi.py
-├── templates/             # Main application
-│   ├── models.py             # EmailTemplate, TemplateVersion models
-│   ├── serializers.py        # DRF serializers
-│   ├── views.py              # API viewsets
-│   ├── urls.py               # URL routing
-│   ├── exceptions.py         # Custom exception handlers
-│   ├── management/
-│   │   └── commands/
-│   │       └── seed_templates.py
-│   └── migrations/
-├── tests/                     # Test files
-│   └── test_templates.py
-├── requirements.txt           # Python dependencies
-├── Dockerfile                # Docker configuration
-├── docker-compose.yml        # Docker Compose setup
-├── .env.example              # Environment variables template
-├── manage.py                 # Django management script
-└── README.md                 # This file
-```
 
 ## Environment Variables
 
 ```bash
-# Django
-DJANGO_SECRET_KEY=your-secret-key
-DEBUG=False
-ALLOWED_HOSTS=localhost,127.0.0.1
-
-# Database
-DB_NAME=template_service
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_HOST=localhost
-DB_PORT=5432
-
 # Application
 PORT=3002
 ```

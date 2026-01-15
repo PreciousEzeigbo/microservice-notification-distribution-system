@@ -12,7 +12,6 @@ def custom_exception_handler(exc, context):
     Custom exception handler that returns snake_case responses
     matching the NestJS email service format
     """
-    from rest_framework.views import exception_handler
     
     # Call REST framework's default exception handler first
     response = exception_handler(exc, context)
@@ -21,9 +20,9 @@ def custom_exception_handler(exc, context):
         # Customize the response format to match snake_case convention
         custom_response = {
             'status_code': response.status_code,
-            'message': str(exc.detail) if hasattr(exc := context.get('exception'), 'detail') else 'An error occurred',
+            'message': str(exc.detail) if hasattr(exc, 'detail') else 'An error occurred',
             'error': response.status_text if hasattr(response, 'status_text') else 'Error',
-            'timestamp': str(response.get('timestamp', '')),
+            'timestamp': timezone.now().isoformat(),
         }
         
         # Add validation errors if present

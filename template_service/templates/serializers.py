@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import EmailTemplate, TemplateVersion
+import re
 
 
 class EmailTemplateSerializer(serializers.ModelSerializer):
@@ -43,7 +44,7 @@ class EmailTemplateSerializer(serializers.ModelSerializer):
     
     def validate_name(self, value):
         """Validate template name format"""
-        import re
+
         if not re.match(r'^[a-z0-9_-]+$', value):
             raise serializers.ValidationError(
                 "Name must contain only lowercase letters, numbers, hyphens, and underscores"
@@ -115,7 +116,6 @@ class TemplateValidationSerializer(serializers.Serializer):
     
     template_name = serializers.CharField()
     variables = serializers.DictField(
-        child=serializers.CharField(),
         required=True
     )
     

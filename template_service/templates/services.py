@@ -34,15 +34,15 @@ def compile_template(html_body: str, text_body: str | None, variables: Dict[str,
         "text": compiled_text
     }
 
-def validate_required_variables(template: 'Template', provided_vars: Dict[str, Any]) -> None:
+def validate_required_variables(template: 'EmailTemplate', provided_vars: Dict[str, Any]) -> None:
     """
     Validate that all required template variables are provided.
     Raises ValidationError if any required variables are missing.
     """
     # Extract placeholders from both HTML and text bodies
-    required_vars = extract_placeholders(template.html_body)
-    if template.text_body:
-        required_vars.update(extract_placeholders(template.text_body))
+    required_vars = extract_placeholders(template.html_content)
+    if template.text_content:
+        required_vars.update(extract_placeholders(template.text_content))
 
     # Check for missing variables
     missing_vars = required_vars - provided_vars.keys()

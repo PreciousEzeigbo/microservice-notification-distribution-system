@@ -2,6 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.db import transaction
 from .models import EmailTemplate, TemplateVersion
 from .serializers import (
@@ -80,9 +81,12 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         
         with transaction.atomic():
-            # Increment version
+            #Use select_for_update to prevent race conditions
+            instance = EmailTemplate.objects.select_for_update().get(pk=instance.pk)
             instance.version += 1
-            template = serializer.save()
+
+            #save with explicit version to prevent client override
+            template = serializer.save(version=instance.version)
             
             # Create version history
             TemplateVersion.objects.create(
@@ -177,9 +181,7 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
             
             return Response({
                 'status': 'healthy',
-                'timestamp': str(logger.handlers[0].formatter.formatTime(logging.LogRecord(
-                    '', 0, '', 0, '', (), None
-                ))) if logger.handlers else None,
+                'timestamp': timezone.now().isoformat(),
                 'database': {
                     'status': 'connected',
                     'templates_count': count
@@ -189,5 +191,5 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
             logger.error(f"Health check failed: {str(e)}")
             return Response({
                 'status': 'unhealthy',
-                'error': str(e)
+                'error': 'Database connrction failed'
             }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
