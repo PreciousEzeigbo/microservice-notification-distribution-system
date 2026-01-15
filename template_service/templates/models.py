@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import RegexValidator
 import re
+from .services import extract_placeholders as service_extract
 
 
 class EmailTemplate(models.Model):
@@ -63,23 +64,12 @@ class EmailTemplate(models.Model):
     
     def extract_placeholders(self):
         """Extract Handlebars placeholders from template content"""
-        pattern = r'\{\{([^}]+)\}\}'
-        html_placeholders = set(re.findall(pattern, self.html_content))
-        subject_placeholders = set(re.findall(pattern, self.subject))
-        
+
+        html_placeholders = service_extract(self.html_content)
+        subject_placeholders = service_extract(self.subject)
         all_placeholders = html_placeholders | subject_placeholders
-        
-        # Clean up placeholder names (remove helpers, spaces, etc.)
-        cleaned = set()
-        for placeholder in all_placeholders:
-            # Remove Handlebars helpers and whitespace
-            cleaned_name = placeholder.strip().split()[0]
-            # Remove any special characters
-            cleaned_name = re.sub(r'[^a-zA-Z0-9_.]', '', cleaned_name)
-            if cleaned_name:
-                cleaned.add(cleaned_name)
-        
-        return sorted(list(cleaned))
+        return sorted(list(all_placeholders))
+
     
     def save(self, *args, **kwargs):
         """Auto-extract placeholders on save"""

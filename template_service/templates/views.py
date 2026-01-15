@@ -191,5 +191,5 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
             logger.error(f"Health check failed: {str(e)}")
             return Response({
                 'status': 'unhealthy',
-                'error': 'Database connrction failed'
+                'error': 'Database connection failed'
             }, status=status.HTTP_503_SERVICE_UNAVAILABLE)

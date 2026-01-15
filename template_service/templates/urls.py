@@ -8,5 +8,5 @@ router.register(r'templates', EmailTemplateViewSet, basename='template')
 app_name = 'templates_app'
 
 urlpatterns = [
-    path('api/v1/', include(router.urls)),
+    path('', include(router.urls)),
 ]
