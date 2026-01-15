@@ -2,7 +2,7 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-from templates_app.models import EmailTemplate
+from templates.models import EmailTemplate
 
 
 @pytest.fixture

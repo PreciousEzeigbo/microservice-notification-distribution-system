@@ -251,7 +251,7 @@ pytest
 pytest --cov=templates_app --cov-report=html
 
 # Run specific test file
-pytest tests/test_templates.py
+pytest tests.py
 
 # Run with verbose output
 pytest -v
@@ -282,7 +282,7 @@ template-service/
 │   ├── urls.py
 │   ├── wsgi.py
 │   └── asgi.py
-├── templates_app/             # Main application
+├── templates/             # Main application
 │   ├── models.py             # EmailTemplate, TemplateVersion models
 │   ├── serializers.py        # DRF serializers
 │   ├── views.py              # API viewsets

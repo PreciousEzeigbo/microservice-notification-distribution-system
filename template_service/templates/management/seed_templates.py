@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from templates_app.models import EmailTemplate
+from templates.models import EmailTemplate
 
 
 class Command(BaseCommand):
