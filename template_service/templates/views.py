@@ -120,10 +120,10 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
         """Validate template with provided variables"""
         template = self.get_object()
         
-        serializer = TemplateValidationSerializer(data={
-            'template_name': template.name,
-            'variables': request.data.get('variables', {})
-        })
+        serializer = TemplateValidationSerializer(
+            data=request.data,
+            context={'template': self.get_object()}
+        )
         
         serializer.is_valid(raise_exception=True)
         
@@ -193,3 +193,5 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
                 'status': 'unhealthy',
                 'error': 'Database connection failed'
             }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        
+        

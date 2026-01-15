@@ -40,7 +40,7 @@ class EmailTemplateSerializer(serializers.ModelSerializer):
             'updated_at',
             'created_by',
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at','version']
     
     def validate_name(self, value):
         """Validate template name format"""
@@ -114,20 +114,17 @@ class TemplateVersionSerializer(serializers.ModelSerializer):
 class TemplateValidationSerializer(serializers.Serializer):
     """Serializer for template validation requests"""
     
-    template_name = serializers.CharField()
     variables = serializers.DictField(
         required=True
     )
     
     def validate(self, data):
         """Validate that template exists and variables are sufficient"""
-        template_name = data.get('template_name')
+        template = self.context.get('template')
         
-        try:
-            template = EmailTemplate.objects.get(name=template_name, is_active=True)
-        except EmailTemplate.DoesNotExist:
+        if not template or not template.is_active:
             raise serializers.ValidationError({
-                'template_name': f"Template '{template_name}' not found or inactive"
+                'template_name': f"Template not found or inactive"
             })
         
         # Check required variables
