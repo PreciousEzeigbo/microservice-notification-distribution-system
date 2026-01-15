@@ -131,14 +131,25 @@ class TemplateValidationSerializer(serializers.Serializer):
             })
         
         # Check required variables
-        provided_vars = set(data.get('variables', {}).keys())
+        provided_vars = data.get('variables', {})
         required_vars = set(template.required_variables)
-        missing_vars = required_vars - provided_vars
-        
+        missing_vars = []
+
+        for var_path in required_vars:
+            keys = var_path.split('.')
+            current_level = provided_vars
+            found = True
+            for key in keys:
+                if not isinstance(current_level, dict) or key not in current_level:
+                    found = False
+                    break
+                current_level = current_level[key]
+            
+            if not found:
+                missing_vars.append(var_path)
+
         if missing_vars:
             raise serializers.ValidationError({
-                'variables': f"Missing required variables: {', '.join(missing_vars)}"
+                'variables': f"Missing required variables: {', '.join(sorted(missing_vars))}"
             })
-        
-        data['template'] = template
         return data

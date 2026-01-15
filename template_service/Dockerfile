@@ -21,9 +21,9 @@ USER appuser
 EXPOSE 3002
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:3002/api/v1/templates/health', timeout=5);r.raise_for_status"
+    CMD python -c "import requests; r = requests.get('http://localhost:3002/api/v1/templates/health', timeout=5); r.raise_for_status()"
 
 
-CMD ["sh", "-c", "python manage.py migrate && gunicorn template_service.wsgi:application --bind 0.0.0.0:3002 --workers 4"]
+CMD ["gunicorn", "template_service.wsgi:application", "--bind", "0.0.0.0:3002", "--workers", "4"]
 
 # ---
