@@ -1,0 +1,120 @@
+# Example docker-compose for local development
+# The actual docker-compose.yml is at the root level for all services
+# This is just a reference for required configuration
+
+version: '3.8'
+
+services:
+  push-service:
+    build: .
+    container_name: push-service
+    ports:
+      - "8003:8003"
+    environment:
+      # Application
+      - DEBUG=true
+      - ENVIRONMENT=development
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=json
+      
+      # RabbitMQ
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+      - RABBITMQ_EXCHANGE=notifications
+      - RABBITMQ_PUSH_QUEUE=push.queue
+      - RABBITMQ_FAILED_QUEUE=push.failed
+      
+      # Redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      
+      # Firebase Cloud Messaging
+      - FCM_ENABLED=true
+      - FCM_CREDENTIALS_PATH=/app/credentials/firebase-adminsdk.json
+      - FCM_PROJECT_ID=your-project-id
+      
+      # Web Push
+      - WEB_PUSH_ENABLED=true
+      - VAPID_PRIVATE_KEY=your-vapid-private-key
+      - VAPID_PUBLIC_KEY=your-vapid-public-key
+      - VAPID_SUBJECT=mailto:your-email@example.com
+      
+      # Service Integration
+      - USER_SERVICE_URL=http://user-service:8001
+      - TEMPLATE_SERVICE_URL=http://template-service:8002
+      
+      # Circuit Breaker
+      - CIRCUIT_BREAKER_FAILURE_THRESHOLD=5
+      - CIRCUIT_BREAKER_RECOVERY_TIMEOUT=60
+      
+      # Retry Configuration
+      - MAX_RETRY_ATTEMPTS=3
+      - RETRY_INITIAL_DELAY=1
+      - RETRY_MAX_DELAY=60
+      
+      # Rate Limiting
+      - RATE_LIMIT_ENABLED=true
+      - RATE_LIMIT_PER_MINUTE=1000
+    
+    volumes:
+      # Mount Firebase credentials file
+      - ./credentials/firebase-adminsdk.json:/app/credentials/firebase-adminsdk.json:ro
+    
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      template-service:
+        condition: service_started
+    
+    networks:
+      - notification-network
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # These services should be defined at root docker-compose level
+  # Shown here for reference only
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - notification-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - notification-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  notification-network:
+    driver: bridge
