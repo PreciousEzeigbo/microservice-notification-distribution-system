@@ -18,8 +18,13 @@ RUN uv sync --no-cache
 COPY ./app ./app
 RUN mkdir -p ./credentials
 
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+RUN chown -R appuser:appuser /app
+
 EXPOSE 8003
 
 ENV PYTHONUNBUFFERED=1
+
+USER appuser
 
 CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8003"]

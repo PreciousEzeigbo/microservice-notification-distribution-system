@@ -225,6 +225,13 @@ class WebPushService:
         # Keep original tokens paired with parsed subscriptions
         # Prefer web_push_subscriptions if provided, otherwise parse device_tokens
         if request.web_push_subscriptions:
+            # Validate that device_tokens and web_push_subscriptions have same length
+            if len(request.device_tokens) != len(request.web_push_subscriptions):
+                raise ValueError(
+                    f"Length mismatch: device_tokens has {len(request.device_tokens)} items "
+                    f"but web_push_subscriptions has {len(request.web_push_subscriptions)} items. "
+                    "Both lists must have the same length."
+                )
             # web_push_subscriptions already contains parsed subscription objects
             token_subscription_pairs = [
                 (token, sub)
