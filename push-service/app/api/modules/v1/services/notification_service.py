@@ -26,7 +26,11 @@ class NotificationService:
         """
         Process a notification request and publish to the push queue.
         """
-        logger.info(f"Processing notification: {payload}")
+        logger.info(
+            f"Processing notification: request_id={payload.request_id}, "
+            f"user_id={payload.user_id}, type={payload.notification_type}, "
+            f"template={payload.template_code}"
+        )
 
         # Determine platform
         if payload.notification_type == "push":
