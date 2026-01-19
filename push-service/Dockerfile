@@ -18,8 +18,7 @@ RUN uv sync --no-cache
 COPY ./app ./app
 RUN mkdir -p ./credentials
 
-RUN groupadd -r appuser && useradd -r -g appuser appuser
-RUN chown -R appuser:appuser /app
+RUN groupadd -r appuser && useradd -r -g appuser appuser && chown -R appuser:appuser /app
 
 EXPOSE 8003
 

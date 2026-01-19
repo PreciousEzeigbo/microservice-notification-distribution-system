@@ -80,15 +80,12 @@ class WebPushService:
             }
         }
 
-        # Add image
         if notification_data.image_url:
             payload["notification"]["image"] = str(notification_data.image_url)
 
-        # Add tag for grouping
         if notification_data.tag:
             payload["notification"]["tag"] = notification_data.tag
 
-        # Add click action and custom data
         data = {}
         if notification_data.click_action:
             data["url"] = str(notification_data.click_action)
@@ -115,7 +112,6 @@ class WebPushService:
         }
         """
         try:
-            # Handle different token types
             if isinstance(token, dict):
                 subscription = token
             elif isinstance(token, (str, bytes)):
@@ -124,7 +120,6 @@ class WebPushService:
                 logger.error(f"Invalid subscription type: {type(token)}")
                 return None
 
-            # Validate required fields
             if "endpoint" not in subscription:
                 logger.error("Invalid subscription: missing endpoint")
                 return None
@@ -162,7 +157,6 @@ class WebPushService:
             payload = self._build_web_push_payload(notification_data)
             payload_json = json.dumps(payload)
 
-            # Send via circuit breaker
             async def _send():
                 return await asyncio.to_thread(
                     webpush,
@@ -222,23 +216,18 @@ class WebPushService:
         invalid_tokens = []
         errors = []
 
-        # Keep original tokens paired with parsed subscriptions
-        # Prefer web_push_subscriptions if provided, otherwise parse device_tokens
         if request.web_push_subscriptions:
-            # Validate that device_tokens and web_push_subscriptions have same length
             if len(request.device_tokens) != len(request.web_push_subscriptions):
                 raise ValueError(
                     f"Length mismatch: device_tokens has {len(request.device_tokens)} items "
                     f"but web_push_subscriptions has {len(request.web_push_subscriptions)} items. "
                     "Both lists must have the same length."
                 )
-            # web_push_subscriptions already contains parsed subscription objects
             token_subscription_pairs = [
                 (token, sub)
                 for token, sub in zip(request.device_tokens, request.web_push_subscriptions)
             ]
         else:
-            # Parse device_tokens as JSON strings
             token_subscription_pairs = [
                 (token, self._parse_subscription(token)) for token in request.device_tokens
             ]
@@ -264,13 +253,12 @@ class WebPushService:
                 sent_count += 1
             else:
                 failed_count += 1
-                # Extract error message from tuple result or convert other types
                 error_payload = (
                     result[1] if isinstance(result, (tuple, list)) and len(result) > 1 else result
                 )
                 error_message = str(error_payload)
                 if "expired" in error_message.lower() or "not found" in error_message.lower():
-                    invalid_tokens.append(token)  # Use original token string
+                    invalid_tokens.append(token)
                 errors.append({"endpoint": sub["endpoint"], "error": error_message})
 
         logger.info(
@@ -290,5 +278,4 @@ class WebPushService:
         return self.circuit_breaker.get_status()
 
 
-# Global Web Push service instance
 web_push_service = WebPushService()
