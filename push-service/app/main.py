@@ -135,8 +135,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     """Handle request validation errors."""
     # Sanitize errors to remove sensitive 'input' field
     sanitized_errors = [
-        {"loc": err["loc"], "msg": err["msg"], "type": err["type"]}
-        for err in exc.errors()
+        {"loc": err["loc"], "msg": err["msg"], "type": err["type"]} for err in exc.errors()
     ]
 
     logger.warning(f"Validation error: {sanitized_errors}")

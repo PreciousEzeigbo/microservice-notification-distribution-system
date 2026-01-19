@@ -232,10 +232,7 @@ class WebPushService:
         failed_count += len(invalid_pairs)
         invalid_tokens.extend([token for token, _ in invalid_pairs])
         errors.extend(
-            [
-                {"token": token, "error": "Invalid subscription format"}
-                for token, _ in invalid_pairs
-            ]
+            [{"token": token, "error": "Invalid subscription format"} for token, _ in invalid_pairs]
         )
 
         tasks = [
