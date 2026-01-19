@@ -1,0 +1,20 @@
+.env
+*venv
+*env
+.venv
+__pycache__/
+*.pytest_cache
+*.pyo
+*.pyc
+*.ruff_cache
+*.mypy_cache
+instance/
+.DS_Store
+.python-version
+credentials/
+firebase-adminsdk.json
+get-fcm-token.html
+firebase-messaging-sw.js
+
+# Docker Compose (root-level only)
+docker-compose.yml
