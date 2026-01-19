@@ -241,7 +241,11 @@ class WebPushService:
                 sent_count += 1
             else:
                 failed_count += 1
-                error_message = str(result)
+                # Extract error message from tuple result or convert other types
+                error_payload = (
+                    result[1] if isinstance(result, (tuple, list)) and len(result) > 1 else result
+                )
+                error_message = str(error_payload)
                 if "expired" in error_message.lower() or "not found" in error_message.lower():
                     invalid_tokens.append(json.dumps(sub))
                 errors.append({"endpoint": sub["endpoint"], "error": error_message})

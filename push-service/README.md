@@ -111,9 +111,8 @@ uv sync
 See [credentials/README.md](credentials/README.md) for detailed instructions.
 
 **Note**: The credentials file is in `.gitignore` for security. Each team member must add their own credentials file.
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-uv pip sync pyproject.toml
 
+```bash
 # Copy environment variables
 cp .env.example .env
 # Edit .env with your configuration

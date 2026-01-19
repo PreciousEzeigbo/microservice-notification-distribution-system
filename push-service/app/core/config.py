@@ -9,6 +9,9 @@ from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Circuit Breaker constants (not configurable via environment variables)
+CIRCUIT_BREAKER_EXPECTED_EXCEPTION = (Exception,)
+
 
 class Settings(BaseSettings):
     """
@@ -64,7 +67,6 @@ class Settings(BaseSettings):
 
     CIRCUIT_BREAKER_FAILURE_THRESHOLD: int = 5
     CIRCUIT_BREAKER_RECOVERY_TIMEOUT: int = 60
-    CIRCUIT_BREAKER_EXPECTED_EXCEPTION: tuple = (Exception,)
 
     MAX_RETRY_ATTEMPTS: int = 3
     RETRY_INITIAL_DELAY: float = 1.0

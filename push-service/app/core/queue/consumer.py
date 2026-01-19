@@ -10,9 +10,9 @@ Implements:
 - Automatic reconnection
 """
 
-import asyncio
 import json
 import logging
+from datetime import datetime
 from typing import Optional
 
 import aio_pika
@@ -178,11 +178,17 @@ class RabbitMQConsumer:
                         await message.ack()
                         return
 
+                    # Safely extract variables - handle both dict and object cases
+                    variables = body.get("variables", {})
+                    variables_dict = (
+                        variables.__dict__
+                        if (hasattr(variables, "__dict__") and not isinstance(variables, dict))
+                        else variables
+                    )
+
                     rendered = await template_client.render_template(
                         template_code=body["template_code"],
-                        variables=body.get("variables", {}).__dict__
-                        if hasattr(body.get("variables"), "__dict__")
-                        else body.get("variables", {}),
+                        variables=variables_dict,
                         language=body.get("metadata", {}).get("language"),
                     )
 
@@ -227,9 +233,13 @@ class RabbitMQConsumer:
                         f"Message processing resulted in unexpected status: {response.status}"
                     )
             else:
+                message_type = body.get("notification_type", "unknown")
+                message_id = body.get("request_id", "unknown")
                 logger.info(
-                    f"Message is not a push notification, skipping. Full body: {json.dumps(body)}"
+                    f"Message is not a push notification, skipping. "
+                    f"type={message_type}, request_id={message_id}"
                 )
+                await message.ack()
 
         except json.JSONDecodeError as e:
             logger.error(f"Invalid JSON in message: {str(e)}")
@@ -252,14 +262,33 @@ class RabbitMQConsumer:
                 )
                 await message.nack(requeue=False)
             else:
+                # Republish with incremented retry count and ACK original
                 logger.info(f"Requeuing message (retry {retry_count + 1}/{max_retries})")
-                await message.nack(requeue=True)
+
+                # Create new headers with incremented retry count
+                new_headers = dict(message.headers) if message.headers else {}
+                new_headers["x-retry-count"] = retry_count + 1
+
+                # Republish the message with updated headers
+                retry_message = Message(
+                    body=message.body,
+                    content_type=message.content_type or "application/json",
+                    delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
+                    headers=new_headers,
+                    correlation_id=correlation_id,
+                )
+
+                await self.exchange.publish(retry_message, routing_key=settings.RABBITMQ_PUSH_QUEUE)
+
+                # ACK the original message to remove it from queue
+                await message.ack()
 
     def _get_retry_count(self, message: AbstractIncomingMessage) -> int:
         """Get retry count from message headers."""
         if not message.headers:
             return 0
-        return message.headers.get("x-retry-count", 0)
+        # Coerce to int in case header is stored as string or other type
+        return int(message.headers.get("x-retry-count", 0))
 
     async def publish_to_failed_queue(
         self, notification_id: str, error: str, original_message: dict
@@ -275,7 +304,7 @@ class RabbitMQConsumer:
             "notification_id": notification_id,
             "error": error,
             "original_message": original_message,
-            "failed_at": str(asyncio.get_event_loop().time()),
+            "failed_at": datetime.utcnow().isoformat(),
         }
 
         message = Message(

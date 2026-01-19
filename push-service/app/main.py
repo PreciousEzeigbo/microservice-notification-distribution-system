@@ -22,6 +22,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.modules.v1.models.push_model import ApiResponse
 from app.api.modules.v1.routes import health, notifications
+from app.api.modules.v1.services.fcm_service import fcm_service
 from app.core.cache.redis_client import redis_client
 from app.core.config import settings
 from app.core.exceptions.custom_exceptions import (
@@ -87,6 +88,7 @@ async def lifespan(app: FastAPI):
 
         await rabbitmq_consumer.disconnect()
         await redis_client.disconnect()
+        await fcm_service.close()
 
         logger.info("✓ Push Service stopped gracefully")
 

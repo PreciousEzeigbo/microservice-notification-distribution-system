@@ -36,6 +36,7 @@ class FCMService:
     def __init__(self):
         self.project_id = settings.FCM_PROJECT_ID
         self.credentials = None
+        self.http_client = httpx.AsyncClient(timeout=10.0)
         self.circuit_breaker = CircuitBreaker(
             failure_threshold=settings.CIRCUIT_BREAKER_FAILURE_THRESHOLD,
             recovery_timeout=settings.CIRCUIT_BREAKER_RECOVERY_TIMEOUT,
@@ -64,7 +65,6 @@ class FCMService:
         if not self.credentials:
             raise FCMServiceError("FCM credentials not loaded")
 
-        # Refresh token if needed
         if not self.credentials.valid:
             self.credentials.refresh(Request())
 
@@ -174,18 +174,16 @@ class FCMService:
                 message["validate_only"] = True
 
             async def _send():
-                async with httpx.AsyncClient() as client:
-                    response = await client.post(
-                        endpoint,
-                        json=message,
-                        headers={
-                            "Authorization": f"Bearer {access_token}",
-                            "Content-Type": "application/json",
-                        },
-                        timeout=10.0,
-                    )
-                    response.raise_for_status()
-                    return response.json()
+                response = await self.http_client.post(
+                    endpoint,
+                    json=message,
+                    headers={
+                        "Authorization": f"Bearer {access_token}",
+                        "Content-Type": "application/json",
+                    },
+                )
+                response.raise_for_status()
+                return response.json()
 
             await self.circuit_breaker.call(_send)
             logger.debug(f"FCM send success: {token[:20]}...")
@@ -223,7 +221,11 @@ class FCMService:
                 sent_count += 1
             else:
                 failed_count += 1
-                error_message = str(result)
+                # Extract error message from tuple result or convert other types
+                error_payload = (
+                    result[1] if isinstance(result, (tuple, list)) and len(result) > 1 else result
+                )
+                error_message = str(error_payload)
                 if "Invalid token" in error_message:
                     invalid_tokens.append(token)
                 errors.append({"token": token, "error": error_message})
@@ -306,6 +308,11 @@ class FCMService:
     def get_circuit_status(self) -> dict:
         """Get circuit breaker status."""
         return self.circuit_breaker.get_status()
+
+    async def close(self):
+        """Close HTTP client during shutdown."""
+        await self.http_client.aclose()
+        logger.info("FCM service HTTP client closed")
 
 
 # Global FCM service instance

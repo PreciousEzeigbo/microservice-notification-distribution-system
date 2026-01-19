@@ -6,6 +6,8 @@ from typing import Optional
 from fastapi import APIRouter, status
 from pydantic import BaseModel, Field
 
+from app.api.modules.v1.models.push_model import ApiResponse
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
@@ -58,8 +60,8 @@ async def report_push_status(payload: PushStatusReport):
     # TODO: Store status in database or forward to API Gateway
     # TODO: Update metrics/monitoring
 
-    return {
-        "success": True,
-        "message": "Status received and recorded",
-        "data": {"notification_id": payload.notification_id, "status": payload.status},
-    }
+    return ApiResponse(
+        success=True,
+        message="Status received and recorded",
+        data={"notification_id": payload.notification_id, "status": payload.status},
+    )
