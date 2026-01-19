@@ -110,7 +110,9 @@ class FCMService:
             data_payload["click_action"] = str(notification_data.click_action)
 
         if notification_data.custom_data:
-            data_payload.update(notification_data.custom_data)
+            # FCM data payload only accepts string values - stringify all custom_data
+            stringified_custom_data = {k: str(v) for k, v in notification_data.custom_data.items()}
+            data_payload.update(stringified_custom_data)
 
         if data_payload:
             message["message"]["data"] = data_payload

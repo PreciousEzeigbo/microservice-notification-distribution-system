@@ -133,13 +133,19 @@ async def log_requests(request: Request, call_next):
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Handle request validation errors."""
-    logger.warning(f"Validation error: {exc.errors()}")
+    # Sanitize errors to remove sensitive 'input' field
+    sanitized_errors = [
+        {"loc": err["loc"], "msg": err["msg"], "type": err["type"]}
+        for err in exc.errors()
+    ]
+
+    logger.warning(f"Validation error: {sanitized_errors}")
 
     response = ApiResponse(
         success=False,
         error="Validation error",
         message="Invalid request data",
-        data={"errors": exc.errors()},
+        data={"errors": sanitized_errors},
     )
 
     return JSONResponse(

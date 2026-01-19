@@ -115,7 +115,14 @@ class WebPushService:
         }
         """
         try:
-            subscription = json.loads(token)
+            # Handle different token types
+            if isinstance(token, dict):
+                subscription = token
+            elif isinstance(token, (str, bytes)):
+                subscription = json.loads(token)
+            else:
+                logger.error(f"Invalid subscription type: {type(token)}")
+                return None
 
             # Validate required fields
             if "endpoint" not in subscription:
@@ -133,7 +140,7 @@ class WebPushService:
 
             return subscription
 
-        except json.JSONDecodeError as e:
+        except (json.JSONDecodeError, TypeError) as e:
             logger.error(f"Failed to parse subscription token: {str(e)}")
             return None
 
@@ -215,28 +222,29 @@ class WebPushService:
         invalid_tokens = []
         errors = []
 
-        subscriptions = [self._parse_subscription(token) for token in request.device_tokens]
-        valid_subscriptions = [s for s in subscriptions if s]
-        invalid_subscriptions = [
-            token for token, s in zip(request.device_tokens, subscriptions) if not s
+        # Keep original tokens paired with parsed subscriptions
+        token_subscription_pairs = [
+            (token, self._parse_subscription(token)) for token in request.device_tokens
         ]
+        valid_pairs = [(token, sub) for token, sub in token_subscription_pairs if sub]
+        invalid_pairs = [(token, sub) for token, sub in token_subscription_pairs if not sub]
 
-        failed_count += len(invalid_subscriptions)
-        invalid_tokens.extend(invalid_subscriptions)
+        failed_count += len(invalid_pairs)
+        invalid_tokens.extend([token for token, _ in invalid_pairs])
         errors.extend(
             [
                 {"token": token, "error": "Invalid subscription format"}
-                for token in invalid_subscriptions
+                for token, _ in invalid_pairs
             ]
         )
 
         tasks = [
             self._send_single(sub, request.notification, request.ttl or 86400)
-            for sub in valid_subscriptions
+            for _, sub in valid_pairs
         ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        for sub, result in zip(valid_subscriptions, results):
+        for (token, sub), result in zip(valid_pairs, results):
             if isinstance(result, tuple) and result[0]:
                 sent_count += 1
             else:
@@ -247,7 +255,7 @@ class WebPushService:
                 )
                 error_message = str(error_payload)
                 if "expired" in error_message.lower() or "not found" in error_message.lower():
-                    invalid_tokens.append(json.dumps(sub))
+                    invalid_tokens.append(token)  # Use original token string
                 errors.append({"endpoint": sub["endpoint"], "error": error_message})
 
         logger.info(
