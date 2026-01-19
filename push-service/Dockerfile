@@ -15,7 +15,7 @@ ENV UV_SYSTEM_PYTHON=1
 
 # Install dependencies
 COPY pyproject.toml ./
-RUN uv sync --no-cache -r pyproject.toml
+RUN uv sync --no-cache
 
 # Copy application code
 COPY ./app ./app
