@@ -145,10 +145,16 @@ class FCMService:
         return message
 
     async def _send_single(
-        self, token: str, notification_data: RichNotificationData, priority: str = "normal"
+        self, token: str, notification_data: RichNotificationData, priority: str = "normal", validate_only: bool = False
     ) -> tuple[bool, Optional[str]]:
         """
         Send notification to a single device token.
+
+        Args:
+            token: Device FCM token
+            notification_data: Rich notification content
+            priority: Message priority (normal/high)
+            validate_only: If True, performs dry-run validation without sending
 
         Returns:
             (success, error_message)
@@ -158,6 +164,10 @@ class FCMService:
             endpoint = self.FCM_ENDPOINT.format(project_id=self.project_id)
 
             message = self._build_fcm_message(token, notification_data, priority)
+            
+            # Add validate_only flag for dry-run validation
+            if validate_only:
+                message["validate_only"] = True
 
             async def _send():
                 async with httpx.AsyncClient() as client:
@@ -273,13 +283,13 @@ class FCMService:
         """
         Validate if a device token is still valid.
 
-        This is a dry-run send to check token validity.
+        This is a dry-run send to check token validity without sending a real notification.
         """
         try:
-            # Use a minimal test notification
+            # Use a minimal test notification with validate_only flag
             test_notification = RichNotificationData(title="Test", body="Token validation")
 
-            success, _ = await self._send_single(token, test_notification, priority="low")
+            success, _ = await self._send_single(token, test_notification, priority="low", validate_only=True)
 
             return success
 
