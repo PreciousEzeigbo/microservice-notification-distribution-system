@@ -223,9 +223,18 @@ class WebPushService:
         errors = []
 
         # Keep original tokens paired with parsed subscriptions
-        token_subscription_pairs = [
-            (token, self._parse_subscription(token)) for token in request.device_tokens
-        ]
+        # Prefer web_push_subscriptions if provided, otherwise parse device_tokens
+        if request.web_push_subscriptions:
+            # web_push_subscriptions already contains parsed subscription objects
+            token_subscription_pairs = [
+                (token, sub)
+                for token, sub in zip(request.device_tokens, request.web_push_subscriptions)
+            ]
+        else:
+            # Parse device_tokens as JSON strings
+            token_subscription_pairs = [
+                (token, self._parse_subscription(token)) for token in request.device_tokens
+            ]
         valid_pairs = [(token, sub) for token, sub in token_subscription_pairs if sub]
         invalid_pairs = [(token, sub) for token, sub in token_subscription_pairs if not sub]
 
@@ -236,7 +245,9 @@ class WebPushService:
         )
 
         tasks = [
-            self._send_single(sub, request.notification, request.ttl or 86400)
+            self._send_single(
+                sub, request.notification, request.ttl if request.ttl is not None else 86400
+            )
             for _, sub in valid_pairs
         ]
         results = await asyncio.gather(*tasks, return_exceptions=True)

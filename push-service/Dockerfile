@@ -8,22 +8,15 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv package manager (pinned version for reproducible builds)
 COPY --from=ghcr.io/astral-sh/uv:0.5.11 /uv /usr/local/bin/uv
 
 ENV UV_SYSTEM_PYTHON=1
 
-# Install dependencies
-COPY pyproject.toml ./
+COPY pyproject.toml README.md ./
 RUN uv sync --no-cache
 
-# Copy application code
 COPY ./app ./app
 
-# Create credentials directory
-# Firebase credentials should be mounted at runtime via volume:
-# -v /path/to/firebase-adminsdk.json:/app/credentials/firebase-adminsdk.json:ro
-# See credentials/README.md for setup instructions
 RUN mkdir -p ./credentials
 
 EXPOSE 8003
