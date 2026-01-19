@@ -145,7 +145,11 @@ class FCMService:
         return message
 
     async def _send_single(
-        self, token: str, notification_data: RichNotificationData, priority: str = "normal", validate_only: bool = False
+        self,
+        token: str,
+        notification_data: RichNotificationData,
+        priority: str = "normal",
+        validate_only: bool = False,
     ) -> tuple[bool, Optional[str]]:
         """
         Send notification to a single device token.
@@ -164,7 +168,7 @@ class FCMService:
             endpoint = self.FCM_ENDPOINT.format(project_id=self.project_id)
 
             message = self._build_fcm_message(token, notification_data, priority)
-            
+
             # Add validate_only flag for dry-run validation
             if validate_only:
                 message["validate_only"] = True
@@ -289,7 +293,9 @@ class FCMService:
             # Use a minimal test notification with validate_only flag
             test_notification = RichNotificationData(title="Test", body="Token validation")
 
-            success, _ = await self._send_single(token, test_notification, priority="low", validate_only=True)
+            success, _ = await self._send_single(
+                token, test_notification, priority="low", validate_only=True
+            )
 
             return success
 

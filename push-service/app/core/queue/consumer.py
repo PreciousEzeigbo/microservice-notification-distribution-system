@@ -160,9 +160,14 @@ class RabbitMQConsumer:
                     from app.core.clients.device_token_client import device_token_client
                     from app.core.clients.template_client import template_client
 
-                    platform = PushPlatform.FCM
+                    platform_value = body.get("platform", PushPlatform.FCM.value)
+                    try:
+                        platform = PushPlatform(platform_value)
+                    except ValueError:
+                        raise ValueError(f"Unsupported platform: {platform_value}")
+
                     device_tokens = await device_token_client.get_tokens_for_user(
-                        user_id=body["user_id"], platform="fcm"
+                        user_id=body["user_id"], platform=platform.value
                     )
 
                     if not device_tokens:
