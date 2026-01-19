@@ -12,13 +12,15 @@ COPY --from=ghcr.io/astral-sh/uv:0.5.11 /uv /usr/local/bin/uv
 
 ENV UV_SYSTEM_PYTHON=1
 
-COPY pyproject.toml README.md ./
+RUN groupadd -r appuser && useradd -r -g appuser appuser && chown -R appuser:appuser /app
+
+USER appuser
+
+COPY --chown=appuser:appuser pyproject.toml README.md ./
 RUN uv sync --no-cache
 
-COPY ./app ./app
+COPY --chown=appuser:appuser ./app ./app
 RUN mkdir -p ./credentials
-
-RUN groupadd -r appuser && useradd -r -g appuser appuser && chown -R appuser:appuser /app
 
 EXPOSE 8003
 
