@@ -16,7 +16,6 @@ COPY pyproject.toml README.md ./
 RUN uv sync --no-cache
 
 COPY ./app ./app
-
 RUN mkdir -p ./credentials
 
 EXPOSE 8003
