@@ -1,4 +1,4 @@
-class ServiceException(Exception):
+class ServiceError(Exception):
     """Base exception for all service-related errors."""
 
     def __init__(self, message: str = "Service error", code: int = 500):
@@ -7,58 +7,46 @@ class ServiceException(Exception):
         super().__init__(self.message)
 
 
-class HealthServiceException(Exception):
+class HealthServiceError(ServiceError):
     """Exception raised for errors in the Health service."""
 
     def __init__(self, message: str = "Health Service error", code: int = 500):
-        self.message = message
-        self.code = code
-        super().__init__(self.message)
+        super().__init__(message, code)
 
 
-class WebPushServiceException(Exception):
+class WebPushServiceError(ServiceError):
     """Exception raised for errors in the Web Push service."""
 
     def __init__(self, message: str = "Web Push Service error", code: int = 500):
-        self.message = message
-        self.code = code
-        super().__init__(self.message)
+        super().__init__(message, code)
 
 
 # Custom exceptions for notification services
 
 
-class FCMServiceException(Exception):
+class FCMServiceError(ServiceError):
     """Exception raised for errors in the FCM service."""
 
     def __init__(self, message: str = "FCM Service error", code: int = 500):
-        self.message = message
-        self.code = code
-        super().__init__(self.message)
+        super().__init__(message, code)
 
 
-class NotificationServiceException(Exception):
+class NotificationServiceError(ServiceError):
     """Exception raised for errors in the Notification service."""
 
     def __init__(self, message: str = "Notification Service error", code: int = 500):
-        self.message = message
-        self.code = code
-        super().__init__(self.message)
+        super().__init__(message, code)
 
 
-class PushServiceException(Exception):
+class PushServiceError(ServiceError):
     """Exception raised for errors in the Push service."""
 
     def __init__(self, message: str = "Push Service error", code: int = 500):
-        self.message = message
-        self.code = code
-        super().__init__(self.message)
+        super().__init__(message, code)
 
 
-class InvalidTokenException(Exception):
+class InvalidTokenError(ServiceError):
     """Exception raised for invalid device tokens."""
 
     def __init__(self, message: str = "Invalid device token", code: int = 400):
-        self.message = message
-        self.code = code
-        super().__init__(self.message)
+        super().__init__(message, code)

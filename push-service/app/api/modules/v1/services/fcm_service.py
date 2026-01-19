@@ -20,7 +20,7 @@ from google.oauth2 import service_account
 from app.api.modules.v1.models.push_model import PushNotificationRequest, RichNotificationData
 from app.api.modules.v1.services.circuit_breaker import CircuitBreaker
 from app.core.config import settings
-from app.core.exceptions.custom_exceptions import FCMServiceException
+from app.core.exceptions.custom_exceptions import FCMServiceError
 
 logger = logging.getLogger(__name__)
 
@@ -57,12 +57,12 @@ class FCMService:
             )
             logger.info("✓ FCM credentials loaded")
         except Exception as e:
-            raise FCMServiceException(f"Failed to load FCM credentials: {str(e)}")
+            raise FCMServiceError(f"Failed to load FCM credentials: {str(e)}")
 
     def _get_access_token(self) -> str:
         """Get OAuth2 access token for FCM API."""
         if not self.credentials:
-            raise FCMServiceException("FCM credentials not loaded")
+            raise FCMServiceError("FCM credentials not loaded")
 
         # Refresh token if needed
         if not self.credentials.valid:
@@ -185,11 +185,9 @@ class FCMService:
                 error_msg = "Invalid request"
             elif e.response.status_code >= 500:
                 error_msg = "FCM server error"
-            raise FCMServiceException(f"FCM send failed: {token[:20]}... - {error_msg}")
+            raise FCMServiceError(f"FCM send failed: {token[:20]}... - {error_msg}")
         except Exception as e:
-            raise FCMServiceException(
-                f"FCM send error: {token[:20]}... - {type(e).__name__}: {str(e)}"
-            )
+            raise FCMServiceError(f"FCM send error: {token[:20]}... - {type(e).__name__}: {str(e)}")
 
     async def _send_batch(
         self, tokens: List[str], notification_data: RichNotificationData, priority: str

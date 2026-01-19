@@ -25,11 +25,11 @@ from app.api.modules.v1.routes import health, notifications
 from app.core.cache.redis_client import redis_client
 from app.core.config import settings
 from app.core.exceptions.custom_exceptions import (
-    FCMServiceException,
-    HealthServiceException,
-    PushServiceException,
-    ServiceException,
-    WebPushServiceException,
+    FCMServiceError,
+    HealthServiceError,
+    PushServiceError,
+    ServiceError,
+    WebPushServiceError,
 )
 from app.core.exceptions.exception_mapper import (
     fcm_service_exception_handler,
@@ -161,11 +161,11 @@ async def general_exception_handler(request: Request, exc: Exception):
 
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(notifications.router, prefix="/api/v1")
-app.add_exception_handler(ServiceException, service_exception_handler)
-app.add_exception_handler(PushServiceException, push_service_exception_handler)
-app.add_exception_handler(FCMServiceException, fcm_service_exception_handler)
-app.add_exception_handler(WebPushServiceException, web_push_service_exception_handler)
-app.add_exception_handler(HealthServiceException, health_service_exception_handler)
+app.add_exception_handler(ServiceError, service_exception_handler)
+app.add_exception_handler(PushServiceError, push_service_exception_handler)
+app.add_exception_handler(FCMServiceError, fcm_service_exception_handler)
+app.add_exception_handler(WebPushServiceError, web_push_service_exception_handler)
+app.add_exception_handler(HealthServiceError, health_service_exception_handler)
 
 
 @app.get("/", tags=["root"])

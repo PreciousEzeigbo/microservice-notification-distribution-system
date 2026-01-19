@@ -1,19 +1,19 @@
 from starlette import status
 
 from app.core.exceptions.custom_exceptions import (
-    FCMServiceException,
-    HealthServiceException,
-    InvalidTokenException,
-    NotificationServiceException,
-    PushServiceException,
-    WebPushServiceException,
+    FCMServiceError,
+    HealthServiceError,
+    InvalidTokenError,
+    NotificationServiceError,
+    PushServiceError,
+    WebPushServiceError,
 )
 
 ERROR_STATUS_MAP = {
-    FCMServiceException: status.HTTP_502_BAD_GATEWAY,
-    NotificationServiceException: status.HTTP_500_INTERNAL_SERVER_ERROR,
-    PushServiceException: status.HTTP_502_BAD_GATEWAY,
-    InvalidTokenException: status.HTTP_400_BAD_REQUEST,
-    WebPushServiceException: status.HTTP_502_BAD_GATEWAY,
-    HealthServiceException: status.HTTP_503_SERVICE_UNAVAILABLE,
+    FCMServiceError: status.HTTP_502_BAD_GATEWAY,
+    NotificationServiceError: status.HTTP_500_INTERNAL_SERVER_ERROR,
+    PushServiceError: status.HTTP_502_BAD_GATEWAY,
+    InvalidTokenError: status.HTTP_400_BAD_REQUEST,
+    WebPushServiceError: status.HTTP_502_BAD_GATEWAY,
+    HealthServiceError: status.HTTP_503_SERVICE_UNAVAILABLE,
 }
