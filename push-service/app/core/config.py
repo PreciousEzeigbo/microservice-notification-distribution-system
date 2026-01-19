@@ -80,6 +80,10 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "json"
 
+    # CORS Configuration
+    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:8080"
+    CORS_ALLOW_CREDENTIALS: bool = True
+
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 
     @property
