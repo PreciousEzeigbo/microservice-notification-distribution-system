@@ -19,7 +19,7 @@ import aio_pika
 from aio_pika import ExchangeType, Message, connect_robust
 from aio_pika.abc import AbstractIncomingMessage
 
-from app.api.modules.v1.models.push_model import NotificationStatus
+from app.api.modules.v1.models.push_model import ProcessingStatus
 from app.api.modules.v1.services.push_service import push_service
 from app.core.config import settings
 
@@ -208,10 +208,10 @@ class RabbitMQConsumer:
 
                 response = await push_service.send_notification(request)
 
-                if response.status == NotificationStatus.SENT:
+                if response.status == ProcessingStatus.SENT:
                     await message.ack()
                     logger.info(f"✓ Message processed successfully: {request.notification_id}")
-                elif response.status == NotificationStatus.FAILED:
+                elif response.status == ProcessingStatus.FAILED:
                     await message.nack(requeue=False)
                     logger.error(
                         f"✗ Message processing failed permanently: {request.notification_id} (sent to DLQ)"

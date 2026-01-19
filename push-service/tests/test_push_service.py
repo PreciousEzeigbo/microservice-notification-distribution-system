@@ -6,7 +6,7 @@ import pytest
 
 from app.api.modules.v1.models.push_model import (
     NotificationPriority,
-    NotificationStatus,
+    ProcessingStatus,
     PushNotificationRequest,
     PushPlatform,
     RichNotificationData,
@@ -43,7 +43,7 @@ async def test_send_push_notification_fcm(push_service):
     ):
         response = await push_service.send_notification(notification)
 
-        assert response.status == NotificationStatus.SENT
+        assert response.status == ProcessingStatus.SENT
 
 
 @pytest.mark.asyncio
@@ -65,4 +65,4 @@ async def test_send_push_notification_fallback(push_service):
     ):
         response = await push_service.send_notification(notification)
 
-        assert response.status == NotificationStatus.FAILED
+        assert response.status == ProcessingStatus.FAILED

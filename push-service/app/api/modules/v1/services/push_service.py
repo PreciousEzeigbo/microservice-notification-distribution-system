@@ -3,7 +3,7 @@ import time
 from typing import Dict, List
 
 from app.api.modules.v1.models.push_model import (
-    NotificationStatus,
+    ProcessingStatus,
     PushNotificationRequest,
     PushNotificationResponse,
     PushPlatform,
@@ -57,7 +57,7 @@ class PushService:
                 logger.info(f"Duplicate notification skipped: {request.notification_id}")
                 return PushNotificationResponse(
                     notification_id=request.notification_id,
-                    status=NotificationStatus.SENT,
+                    status=ProcessingStatus.SENT,
                     sent_count=0,
                     failed_count=0,
                     details={"message": "Duplicate request (already processed)"},
@@ -72,7 +72,7 @@ class PushService:
                 logger.warning(f"No valid tokens for notification {request.notification_id}")
                 return PushNotificationResponse(
                     notification_id=request.notification_id,
-                    status=NotificationStatus.FAILED,
+                    status=ProcessingStatus.FAILED,
                     sent_count=0,
                     failed_count=len(request.device_tokens),
                     invalid_tokens=request.device_tokens,
@@ -119,7 +119,7 @@ class PushService:
 
             return PushNotificationResponse(
                 notification_id=request.notification_id,
-                status=NotificationStatus.FAILED,
+                status=ProcessingStatus.FAILED,
                 sent_count=0,
                 failed_count=len(request.device_tokens),
                 details={"error": str(e)},
@@ -183,14 +183,14 @@ class PushService:
             _send, context=f"notification_id={request.notification_id}"
         )
 
-    def _determine_status(self, sent_count: int, failed_count: int) -> NotificationStatus:
+    def _determine_status(self, sent_count: int, failed_count: int) -> ProcessingStatus:
         """Determine overall notification status."""
         if sent_count > 0 and failed_count == 0:
-            return NotificationStatus.SENT
+            return ProcessingStatus.SENT
         elif sent_count == 0:
-            return NotificationStatus.FAILED
+            return ProcessingStatus.FAILED
         else:
-            return NotificationStatus.SENT
+            return ProcessingStatus.SENT
 
     def _update_metrics(self, sent_count: int, failed_count: int):
         """Update service metrics."""

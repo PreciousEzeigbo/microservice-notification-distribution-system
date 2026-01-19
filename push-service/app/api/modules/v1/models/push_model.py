@@ -27,7 +27,7 @@ class NotificationPriority(str, Enum):
     LOW = "low"
 
 
-class NotificationStatus(str, Enum):
+class ProcessingStatus(str, Enum):
     """Notification processing status."""
 
     PENDING = "pending"
@@ -143,7 +143,7 @@ class PushNotificationResponse(BaseModel):
     """Response after sending push notification."""
 
     notification_id: str
-    status: NotificationStatus
+    status: ProcessingStatus
     sent_count: int = Field(ge=0, description="Number of successfully sent notifications")
     failed_count: int = Field(ge=0, description="Number of failed sends")
     invalid_tokens: List[str] = Field(default_factory=list, description="Invalid device tokens")
