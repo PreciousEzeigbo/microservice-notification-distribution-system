@@ -115,6 +115,9 @@ class PushNotificationRequest(BaseModel):
     correlation_id: Optional[str] = Field(
         default=None, description="Request correlation ID for tracking"
     )
+    web_push_subscriptions: Optional[List[Dict[str, Any]]] = Field(
+        default=None, description="Web push subscription objects for browser notifications"
+    )
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Config:

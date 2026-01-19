@@ -12,7 +12,7 @@ from app.api.modules.v1.services.push_service import push_service
 from app.api.modules.v1.services.web_push_service import web_push_service
 from app.core.cache.redis_client import redis_client
 from app.core.config import settings
-from app.core.exceptions.custom_exceptions import HealthServiceException
+from app.core.exceptions.custom_exceptions import HealthServiceError
 from app.core.queue.consumer import rabbitmq_consumer
 
 
@@ -40,7 +40,7 @@ class HealthService:
                     "consumers": queue_stats.get("consumer_count", 0),
                 }
         except Exception as e:
-            raise HealthServiceException(f"RabbitMQ health check failed: {str(e)}")
+            raise HealthServiceError(f"RabbitMQ health check failed: {str(e)}")
         try:
             redis_health = await redis_client.health_check()
             if redis_health["status"] == "up":
@@ -49,7 +49,7 @@ class HealthService:
                 checks["redis"] = redis_health
                 failed_checks += 1
         except Exception as e:
-            raise HealthServiceException(f"Redis health check failed: {str(e)}")
+            raise HealthServiceError(f"Redis health check failed: {str(e)}")
         if settings.FCM_ENABLED:
             fcm_circuit = fcm_service.get_circuit_status()
             checks["fcm"] = {

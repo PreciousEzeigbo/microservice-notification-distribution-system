@@ -185,9 +185,12 @@ class FCMService:
                 error_msg = "Invalid request"
             elif e.response.status_code >= 500:
                 error_msg = "FCM server error"
-            raise FCMServiceError(f"FCM send failed: {token[:20]}... - {error_msg}")
+            logger.warning(f"FCM send failed: {token[:20]}... - {error_msg}")
+            return False, error_msg
         except Exception as e:
-            raise FCMServiceError(f"FCM send error: {token[:20]}... - {type(e).__name__}: {str(e)}")
+            error_msg = f"{type(e).__name__}: {str(e)}"
+            logger.error(f"FCM send error: {token[:20]}... - {error_msg}")
+            return False, error_msg
 
     async def _send_batch(
         self, tokens: List[str], notification_data: RichNotificationData, priority: str

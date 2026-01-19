@@ -20,7 +20,6 @@ from pywebpush import WebPushException, webpush
 from app.api.modules.v1.models.push_model import PushNotificationRequest, RichNotificationData
 from app.api.modules.v1.services.circuit_breaker import CircuitBreaker
 from app.core.config import settings
-from app.core.exceptions.custom_exceptions import WebPushServiceError
 
 logger = logging.getLogger(__name__)
 
@@ -184,9 +183,12 @@ class WebPushService:
                     error_msg = "Invalid VAPID credentials"
                 elif status_code >= 500:
                     error_msg = "Push service server error"
-            raise WebPushServiceError(f"Web Push failed: {error_msg}")
+            logger.warning(f"Web Push failed: {error_msg}")
+            return False, error_msg
         except Exception as e:
-            raise WebPushServiceError(f"Web Push error: {type(e).__name__}: {str(e)}")
+            error_msg = f"{type(e).__name__}: {str(e)}"
+            logger.error(f"Web Push error: {error_msg}")
+            return False, error_msg
 
     async def send_notification(self, request: PushNotificationRequest) -> Dict:
         """

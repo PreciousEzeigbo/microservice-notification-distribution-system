@@ -12,7 +12,7 @@ from app.api.modules.v1.services.fcm_service import fcm_service
 from app.api.modules.v1.services.web_push_service import web_push_service
 from app.core.cache.redis_client import redis_client
 from app.core.config import settings
-from app.core.exceptions.custom_exceptions import PushServiceException
+from app.core.exceptions.custom_exceptions import PushServiceError
 from app.utils.retry import create_retry_handler
 
 logger = logging.getLogger(__name__)
@@ -130,7 +130,7 @@ class PushService:
         try:
             return await redis_client.check_and_set_idempotency(notification_id)
         except Exception as e:
-            raise PushServiceException(f"Idempotency check failed: {str(e)}")
+            raise PushServiceError(f"Idempotency check failed: {str(e)}")
 
     async def _check_rate_limit(self, user_id: str):
         """Check and enforce rate limiting."""
@@ -139,12 +139,12 @@ class PushService:
                 user_id, limit=settings.RATE_LIMIT_PER_MINUTE, window=60
             )
             if not is_allowed:
-                raise PushServiceException(
+                raise PushServiceError(
                     f"Rate limit exceeded for user {user_id}: "
                     f"{count}/{settings.RATE_LIMIT_PER_MINUTE} per minute"
                 )
         except Exception as e:
-            raise PushServiceException(f"Rate limit check failed: {str(e)}")
+            raise PushServiceError(f"Rate limit check failed: {str(e)}")
 
     async def _filter_valid_tokens(self, tokens: List[str]) -> List[str]:
         """Filter out tokens that are cached as invalid."""
@@ -155,14 +155,14 @@ class PushService:
             ]
             return valid_tokens
         except Exception as e:
-            raise PushServiceException(f"Token validation check failed: {str(e)}")
+            raise PushServiceError(f"Token validation check failed: {str(e)}")
 
     async def _cache_invalid_tokens(self, tokens: List[str]):
         """Cache invalid tokens to avoid future send attempts."""
         try:
             await redis_client.cache_invalid_tokens(tokens)
         except Exception as e:
-            raise PushServiceException(f"Failed to cache invalid token: {str(e)}")
+            raise PushServiceError(f"Failed to cache invalid token: {str(e)}")
 
     async def _route_to_platform(self, request: PushNotificationRequest) -> Dict:
         """
@@ -176,7 +176,7 @@ class PushService:
             elif request.platform == PushPlatform.WEB_PUSH:
                 return await web_push_service.send_notification(request)
             else:
-                raise PushServiceException(f"Unsupported platform: {request.platform}")
+                raise PushServiceError(f"Unsupported platform: {request.platform}")
 
         # Execute with retry
         return await self.retry_handler.execute(
