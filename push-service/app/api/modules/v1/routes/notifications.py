@@ -14,7 +14,7 @@ router = APIRouter(
 )
 
 
-class NotificationStatus(str, Enum):
+class DeliveryStatus(str, Enum):
     """Notification delivery status as per task specification."""
 
     DELIVERED = "delivered"
@@ -26,7 +26,7 @@ class PushStatusReport(BaseModel):
     """Status report format as per task: POST /api/v1/{notification_preference}/status/"""
 
     notification_id: str = Field(..., description="Notification UUID")
-    status: NotificationStatus = Field(..., description="Delivery status")
+    status: DeliveryStatus = Field(..., description="Delivery status")
     timestamp: Optional[datetime] = Field(None, description="Status timestamp (UTC ISO format)")
     error: Optional[str] = Field(None, description="Error message if failed, else null")
 
