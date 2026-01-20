@@ -17,6 +17,9 @@ def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
     
     if response is not None:
+        if response.status_code >= status.HTTP_500_INTERNAL_SERVER_ERROR:
+            logger.error(f"Server error processing request: {exc}", exc_info=True)
+
         # Customize the response format to match snake_case convention
         custom_response = {
             'status_code': response.status_code,

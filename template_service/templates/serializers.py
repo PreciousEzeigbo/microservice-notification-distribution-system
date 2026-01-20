@@ -11,7 +11,7 @@ class EmailTemplateSerializer(serializers.ModelSerializer):
     text_content = serializers.CharField(required=False, allow_blank=True)
     required_variables = serializers.ListField(
         child=serializers.CharField(),
-        required=False
+        read_only=True
     )
     optional_variables = serializers.ListField(
         child=serializers.CharField(),
@@ -150,3 +150,4 @@ class TemplateValidationSerializer(serializers.Serializer):
                 'variables': f"Missing required variables: {', '.join(sorted(missing_vars))}"
             })
         return data
+    

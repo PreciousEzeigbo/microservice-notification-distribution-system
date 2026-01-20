@@ -28,7 +28,7 @@ The Template Service manages email templates with Handlebars placeholder support
 - Promotional emails
 - General notifications
 
-🏥 **Production Ready**
+🏥 **Production‑Ready**
 - Health check endpoints
 - Snake_case API responses (matches NestJS service)
 - PostgreSQL database
@@ -319,3 +319,4 @@ All API responses use snake_case to match the NestJS Email Service:
 ## License
 
 Part of the Notification Distribution System
+ 

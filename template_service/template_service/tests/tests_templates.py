@@ -17,8 +17,7 @@ def sample_template():
         template_type='notification',
         subject='Test {{variable}}',
         html_content='<p>Hello {{user.name}}</p>',
-        description='Test template',
-        required_variables=['variable', 'user.name']
+        description='Test template'
     )
 
 

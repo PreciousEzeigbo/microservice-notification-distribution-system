@@ -71,8 +71,10 @@ class EmailTemplate(models.Model):
 
     
     def save(self, *args, **kwargs):
-        """Auto-extract placeholders on save"""
-        self.required_variables = self.extract_placeholders()
+        """Auto-extract placeholders on save unless skip_extract is True"""
+        skip_extract = kwargs.pop('skip_extract', False)
+        if not skip_extract and 'update_fields' not in kwargs:
+            self.required_variables = self.extract_placeholders()
         super().save(*args, **kwargs)
 
 
@@ -101,3 +103,4 @@ class TemplateVersion(models.Model):
     
     def __str__(self):
         return f"{self.template.name} - v{self.version_number}"
+    

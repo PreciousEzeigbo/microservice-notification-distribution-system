@@ -2,7 +2,7 @@
 URL configuration for template_service project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.0.15/topics/http/urls/
+    https://docs.djangoproject.com/en/5.2.8/topics/http/urls/
 Examples:
 Function views
     1. Add an import:  from my_app import views
@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from django.conf import settings
 from rest_framework import permissions
 
 schema_view = get_schema_view(
@@ -33,5 +34,9 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include('templates.urls')),
-    path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 ]
+if settings.DEBUG:
+    urlpatterns.append(
+        path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui')
+    )
+    

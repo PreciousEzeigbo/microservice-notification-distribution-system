@@ -161,9 +161,10 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def activate(self, request, name=None):
         """Activate a template"""
-        template = self.get_object()
-        template.is_active = True
-        template.save()
+        with transaction.atomic():
+            template = self.get_queryset().select_for_update().get(name=name)
+            template.is_active = True
+            template.save(update_fields=['is_active'])
         
         logger.info(f"Template activated: {template.name}")
         return Response({
@@ -174,9 +175,10 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def deactivate(self, request, name=None):
         """Deactivate a template"""
-        template = self.get_object()
-        template.is_active = False
-        template.save()
+        with transaction.atomic():
+            template = self.get_queryset().select_for_update().get(name=name)
+            template.is_active = False
+            template.save(update_fields=['is_active'])
         
         logger.info(f"Template deactivated: {template.name}")
         return Response({
@@ -205,5 +207,6 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
                 'status': 'unhealthy',
                 'error': 'Database connection failed'
             }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        
         
         
