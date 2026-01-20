@@ -6,7 +6,7 @@ import re
 class EmailTemplateSerializer(serializers.ModelSerializer):
     """Serializer for EmailTemplate with snake_case fields"""
     
-    template_type = serializers.CharField()
+    template_type = serializers.ChoiceField(choices=EmailTemplate.TEMPLATE_TYPES)
     html_content = serializers.CharField()
     text_content = serializers.CharField(required=False, allow_blank=True)
     required_variables = serializers.ListField(
