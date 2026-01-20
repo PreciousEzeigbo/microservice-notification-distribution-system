@@ -121,7 +121,7 @@ Content-Type: application/json
   "html_content": "<h1>Hello {{user.name}}</h1>",
   "text_content": "Hello {{user.name}}",
   "description": "Welcome email template",
-  "required_variables": ["user.name", "user.email"],
+  "required_variables": ["user.name"],
   "is_active": true
 }
 ```

@@ -25,6 +25,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
         CMD python -c "import os, urllib.request; port = os.getenv('PORT', '3002'); urllib.request.urlopen(f'http://localhost:{port}/api/v1/templates/health/', timeout=5).read()"
 
 
-CMD ["/bin/sh", "-c", "gunicorn template_service.wsgi:application --bind 0.0.0.0:$PORT --workers 4"]
+CMD ["/bin/sh", "-c", "gunicorn template_service.wsgi:application --bind 0.0.0.0:$PORT --workers ${GUNICORN_WORKERS:-4}"]
 # ---
 

@@ -6,13 +6,20 @@ from django.core.exceptions import ValidationError
 # Initialize PyBars compiler
 compiler = Compiler()
 
+# Handlebars control keywords and block helpers that should not be treated as variables
+RESERVED_TAGS = {"else", "if", "each", "with", "unless", "log", "lookup", "block", "inline"}
+
 def extract_placeholders(template_content: str) -> Set[str]:
     """
     Extract all {{variable}} and {{{triple}}} placeholders from template content.
     Returns a set of variable names found in the template.
     """
     pattern = r'{{{?\s*([a-zA-Z0-9_\.]+)\s*}}}?'
-    return {match.group(1) for match in re.finditer(pattern, template_content)}
+    return {
+        match.group(1)
+        for match in re.finditer(pattern, template_content or "")
+        if match.group(1) not in RESERVED_TAGS
+    }
 
 def compile_template(html_body: str, text_body: str | None, variables: Dict[str, Any]) -> Dict[str, str | None]:
     """

@@ -143,7 +143,7 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
     def placeholders(self, request, name=None):
         """Extract and return all placeholders from template"""
         template = self.get_object()
-        placeholders = template.extract_placeholders()
+        placeholders = template.required_variables
         
         return Response({
             'template_name': template.name,
@@ -156,10 +156,9 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
     def activate(self, request, name=None):
         """Activate a template"""
         with transaction.atomic():
-            template = get_object_or_404(
-                self.get_queryset().select_for_update(),
-                name=name
-            )
+            queryset = self.get_queryset().select_for_update()
+            template = get_object_or_404(queryset, name=name)
+            self.check_object_permissions(request, template)
             template.is_active = True
             template.save(update_fields=['is_active'])
         
@@ -173,7 +172,9 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
     def deactivate(self, request, name=None):
         """Deactivate a template"""
         with transaction.atomic():
-            template = self.get_queryset().select_for_update().get(name=name)
+            queryset = self.get_queryset().select_for_update()
+            template = get_object_or_404(queryset, name=name)
+            self.check_object_permissions(request, template)
             template.is_active = False
             template.save(update_fields=['is_active'])
         

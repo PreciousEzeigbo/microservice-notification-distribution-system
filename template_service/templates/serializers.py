@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import EmailTemplate, TemplateVersion
-import re
 
 
 class EmailTemplateSerializer(serializers.ModelSerializer):
