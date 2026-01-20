@@ -11,7 +11,7 @@ def extract_placeholders(template_content: str) -> Set[str]:
     Extract all {{variable}} and {{{triple}}} placeholders from template content.
     Returns a set of variable names found in the template.
     """
-    pattern = r'{{{?\s*([a-zA-Z0-9_\.]+)\s*}}}'
+    pattern = r'{{{?\s*([a-zA-Z0-9_\.]+)\s*}}}?'
     return {match.group(1) for match in re.finditer(pattern, template_content)}
 
 def compile_template(html_body: str, text_body: str | None, variables: Dict[str, Any]) -> Dict[str, str | None]:
@@ -45,7 +45,19 @@ def validate_required_variables(template: 'EmailTemplate', provided_vars: Dict[s
         required_vars.update(extract_placeholders(template.text_content))
 
     # Check for missing variables
-    missing_vars = required_vars - provided_vars.keys()
+    missing_vars = []
+    for var_path in required_vars:
+        keys = var_path.split('.')
+        current_level = provided_vars
+        found = True
+        for key in keys:
+            if not isinstance(current_level, dict) or key not in current_level:
+                found = False
+                break
+            current_level = current_level[key]
+        if not found:
+            missing_vars.append(var_path)
+
     if missing_vars:
         raise ValidationError(
             f"Missing required template variables: {', '.join(sorted(missing_vars))}",

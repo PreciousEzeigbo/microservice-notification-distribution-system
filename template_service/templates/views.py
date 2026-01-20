@@ -1,7 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db import transaction
 from .models import EmailTemplate, TemplateVersion
@@ -76,13 +75,14 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         """Update template and create new version"""
         partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
+
         
         with transaction.atomic():
-            #Use select_for_update to prevent race conditions
-            instance = EmailTemplate.objects.select_for_update().get(pk=instance.pk)
+             # Use select_for_update to prevent race conditions
+            instance = EmailTemplate.objects.select_for_update().get(name=kwargs.get('name'))
+            serializer = self.get_serializer(instance, data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+        
             instance.version += 1
 
             #save with explicit version to prevent client override
@@ -122,7 +122,7 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
         
         serializer = TemplateValidationSerializer(
             data=request.data,
-            context={'template': self.get_object()}
+            context={'template': template}
         )
         
         serializer.is_valid(raise_exception=True)

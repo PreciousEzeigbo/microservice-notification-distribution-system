@@ -1,6 +1,5 @@
 from django.db import models
 from django.core.validators import RegexValidator
-import re
 from .services import extract_placeholders as service_extract
 
 

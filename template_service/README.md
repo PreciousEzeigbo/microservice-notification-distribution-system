@@ -265,11 +265,19 @@ black . && isort . && flake8 .
 
 
 ## Environment Variables
-
 ```bash
+# Django settings
+DJANGO_SECRET_KEY=<generate-a-secure-key>
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+# Database
+DB_NAME=template_service
+DB_USER=postgres
+DB_PASSWORD=<your-password>
+DB_HOST=localhost
+DB_PORT=5432
 # Application
 PORT=3002
-```
 
 ## Monitoring
 

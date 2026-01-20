@@ -27,3 +27,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 CMD ["gunicorn", "template_service.wsgi:application", "--bind", "0.0.0.0:3002", "--workers", "4"]
 
 # ---
+    
