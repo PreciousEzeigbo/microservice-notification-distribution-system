@@ -11,7 +11,7 @@ class Command(BaseCommand):
                 'name': 'welcome_email',
                 'template_type': 'welcome',
                 'subject': 'Welcome to {{app_name}}, {{user.name}}!',
-                'html_content': '''
+                'html_content': textwrap.dedent('''
                     <html>
                     <body>
                         <h1>Welcome {{user.name}}!</h1>
@@ -21,7 +21,7 @@ class Command(BaseCommand):
                         <a href="{{dashboard_url}}">Go to Dashboard</a>
                     </body>
                     </html>
-                ''',
+                '''),
                 'text_content': 'Welcome {{user.name}}! We\'re excited to have you.',
                 'description': 'Welcome email sent to new users',
                 'required_variables': ['user.name', 'user.email', 'app_name', 'dashboard_url'],
