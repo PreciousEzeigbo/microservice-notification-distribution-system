@@ -18,8 +18,6 @@ RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
 
-EXPOSE 3002
-
 ENV PORT=3002
 EXPOSE $PORT
 

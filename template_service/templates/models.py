@@ -64,9 +64,10 @@ class EmailTemplate(models.Model):
     def extract_placeholders(self):
         """Extract Handlebars placeholders from template content"""
 
-        html_placeholders = service_extract(self.html_content)
-        subject_placeholders = service_extract(self.subject)
-        all_placeholders = html_placeholders | subject_placeholders
+        html_placeholders = set(service_extract(self.html_content) or [])
+        subject_placeholders = set(service_extract(self.subject) or [])
+        text_placeholders = set(service_extract(self.text_content) or [])
+        all_placeholders = html_placeholders | subject_placeholders | text_placeholders
         return sorted(list(all_placeholders))
 
     

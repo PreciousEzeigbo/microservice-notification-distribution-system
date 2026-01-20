@@ -5,6 +5,5 @@ django-cors-headers==4.3.1
 gunicorn==22.0.0
 pybars3==0.9.7
 whitenoise==6.6.0
-requests==2.32.3
 drf_yasg==1.21.7
  

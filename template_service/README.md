@@ -278,7 +278,7 @@ DB_HOST=localhost
 DB_PORT=5432
 # Application
 PORT=3002
-
+```
 ## Monitoring
 
 ### Health Checks

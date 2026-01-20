@@ -93,12 +93,6 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
 
             #save with explicit version to prevent client override
             template = serializer.save(version=instance.version)
-            if (
-                'required_variables' not in serializer.validated_data
-                and {'html_content', 'subject'} & serializer.validated_data.keys()
-            ):
-                template.required_variables = template.extract_placeholders()
-                template.save(update_fields=['required_variables'])
 
             # Create version history
             TemplateVersion.objects.create(
@@ -162,7 +156,10 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
     def activate(self, request, name=None):
         """Activate a template"""
         with transaction.atomic():
-            template = self.get_queryset().select_for_update().get(name=name)
+            template = get_object_or_404(
+                self.get_queryset().select_for_update(),
+                name=name
+            )
             template.is_active = True
             template.save(update_fields=['is_active'])
         

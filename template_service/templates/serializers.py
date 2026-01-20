@@ -42,14 +42,6 @@ class EmailTemplateSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at','version']
     
-    def validate_name(self, value):
-        """Validate template name format"""
-
-        if not re.match(r'^[a-z0-9_-]+$', value):
-            raise serializers.ValidationError(
-                "Name must contain only lowercase letters, numbers, hyphens, and underscores"
-            )
-        return value
     
     def validate(self, data):
         """Validate template data"""
