@@ -24,7 +24,7 @@ def custom_exception_handler(exc, context):
         custom_response = {
             'status_code': response.status_code,
             'message': 'An internal server error occurred' if is_server_error
-                          else (str(exc.detail) if hasattr(exc, 'detail') else 'An error occurred'),
+                          else 'An error occurred',
                 'error': response.status_text if hasattr(response, 'status_text') else 'Error',
                 'timestamp': timezone.now().isoformat(),
             }
