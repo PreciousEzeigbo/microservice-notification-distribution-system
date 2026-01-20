@@ -25,7 +25,7 @@ def compile_template(html_body: str, text_body: str | None, variables: Dict[str,
 
     # Compile text if provided
     compiled_text = None
-    if text_body:
+    if text_body is not None:
         template_text = compiler.compile(text_body)
         compiled_text = template_text(variables)
 
@@ -41,6 +41,7 @@ def validate_required_variables(template: 'EmailTemplate', provided_vars: Dict[s
     """
     # Extract placeholders from both HTML and text bodies
     required_vars = extract_placeholders(template.html_content)
+    required_vars.update(extract_placeholders(template.subject))
     if template.text_content:
         required_vars.update(extract_placeholders(template.text_content))
 
@@ -63,3 +64,4 @@ def validate_required_variables(template: 'EmailTemplate', provided_vars: Dict[s
             f"Missing required template variables: {', '.join(sorted(missing_vars))}",
             code='missing_template_variables'
         )
+    

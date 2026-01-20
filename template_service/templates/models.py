@@ -72,8 +72,7 @@ class EmailTemplate(models.Model):
     
     def save(self, *args, **kwargs):
         """Auto-extract placeholders on save"""
-        if not self.required_variables:
-            self.required_variables = self.extract_placeholders()
+        self.required_variables = self.extract_placeholders()
         super().save(*args, **kwargs)
 
 

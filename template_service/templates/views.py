@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.utils import timezone
 from django.db import transaction
 from .models import EmailTemplate, TemplateVersion
+from django.shortcuts import get_object_or_404
 from .serializers import (
     EmailTemplateSerializer,
     EmailTemplateListSerializer,
@@ -78,16 +79,27 @@ class EmailTemplateViewSet(viewsets.ModelViewSet):
 
         
         with transaction.atomic():
-             # Use select_for_update to prevent race conditions
-            instance = EmailTemplate.objects.select_for_update().get(name=kwargs.get('name'))
+            # Use select_for_update to prevent race conditions
+            queryset = self.get_queryset().select_for_update()
+            lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+            instance = get_object_or_404(
+                queryset, **{self.lookup_field: self.kwargs.get(lookup_url_kwarg)}
+            )
+            self.check_object_permissions(request, instance)
             serializer = self.get_serializer(instance, data=request.data, partial=partial)
             serializer.is_valid(raise_exception=True)
-        
+
             instance.version += 1
 
             #save with explicit version to prevent client override
             template = serializer.save(version=instance.version)
-            
+            if (
+                'required_variables' not in serializer.validated_data
+                and {'html_content', 'subject'} & serializer.validated_data.keys()
+            ):
+                template.required_variables = template.extract_placeholders()
+                template.save(update_fields=['required_variables'])
+
             # Create version history
             TemplateVersion.objects.create(
                 template=template,
