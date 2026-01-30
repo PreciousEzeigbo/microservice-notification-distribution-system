@@ -30,9 +30,11 @@ jobs:
               - 'user-service/**/*.py'
               - 'push-service/**/*.py'
               - 'template-service/**/*.py'
+              - 'api-gateway/**/*.py'
               - 'user-service/**/requirements.txt'
               - 'push-service/**/requirements.txt'
               - 'template-service/**/requirements.txt'
+              - 'api-gateway/**/requirements.txt'
               - 'pyproject.toml'
               - 'ruff.toml'
               - 'pytest.ini'
@@ -107,7 +109,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check if directory exists
+        id: check-dir
+        run: |
+          if [ -d "user-service" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "::warning::user-service directory does not exist, skipping job"
+          fi
+        working-directory: .
+
       - name: Set up Python
+        if: steps.check-dir.outputs.exists == 'true'
         uses: actions/setup-python@v4
         with:
           python-version: ${{ vars.USER_SERVICE_PYTHON_VERSION || '3.10' }}
@@ -115,12 +129,14 @@ jobs:
           cache-dependency-path: "user-service/requirements.txt"
 
       - name: Install dependencies
+        if: steps.check-dir.outputs.exists == 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest pytest-django pytest-cov
 
       - name: Run tests
+        if: steps.check-dir.outputs.exists == 'true'
         env:
           SECRET_KEY: ${{ secrets.USER_SERVICE_SECRET_KEY }}
           DEBUG: ${{ vars.USER_SERVICE_DEBUG || 'False' }}
@@ -130,10 +146,12 @@ jobs:
           pytest --cov=accounts --cov-report=xml --cov-report=term -v
 
       - name: Build Docker image
+        if: steps.check-dir.outputs.exists == 'true'
         run: |
           docker build -t user-service:latest .
 
       - name: Upload coverage
+        if: steps.check-dir.outputs.exists == 'true'
         uses: codecov/codecov-action@v3
         with:
           file: ./user-service/coverage.xml
