@@ -23,7 +23,7 @@ load_dotenv(BASE_DIR / ".env")
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("API_GATEWAY_SECRET_KEY")
 
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY is not set in environment variables")
@@ -86,7 +86,7 @@ WSGI_APPLICATION = 'api_gateway.wsgi.application'
 
 DATABASES = {
     "default": dj_database_url.parse(
-        os.getenv("DATABASE_URL"),
+        os.getenv("API_GATEWAY_DATABASE_URL"),
         conn_max_age=600,
         ssl_require=os.getenv("DB_SSL_REQUIRE", "True") == "True",
     )
@@ -119,7 +119,11 @@ SERVICE_URLS = {
     "NOTIFICATION": "http://localhost:3005",
 }
 
-REDIS_URL = "redis://127.0.0.1:6379/1"
+REDIS_HOST = os.getenv("REDIS_HOST", "127.0.0.1")
+REDIS_PORT = os.getenv("REDIS_PORT", "6379")
+REDIS_DB = os.getenv("REDIS_DB", "1")
+
+REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
