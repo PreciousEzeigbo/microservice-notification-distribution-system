@@ -5,7 +5,7 @@ from observability.models import (
     GatewayRequestLog,
     NotificationAuditLog,
     ServiceFailureLog,
-    GatewayMetrics
+    GatewayMetrics,
 )
 
 
@@ -24,7 +24,7 @@ class GatewayRequestLogAdmin(admin.ModelAdmin):
         "latency_ms",
         "service_target",
         "user_id",
-        "created_at"
+        "created_at",
     )
 
     search_fields = ("path", "correlation_id", "service_target", "user_id")
@@ -38,7 +38,7 @@ class GatewayRequestLogAdmin(admin.ModelAdmin):
         "latency_ms",
         "service_target",
         "correlation_id",
-        "created_at"
+        "created_at",
     )
 
     ordering = ("-created_at",)
@@ -58,7 +58,7 @@ class GatewayRequestLogAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="color: {}; font-weight: bold;">{}</span>',
             color,
-            obj.status_code
+            obj.status_code,
         )
 
     status_code_colored.short_description = "Status"
@@ -85,7 +85,7 @@ class NotificationAuditLogAdmin(admin.ModelAdmin):
         "status_colored",
         "user_id",
         "template_code",
-        "created_at"
+        "created_at",
     )
 
     search_fields = (
@@ -93,7 +93,7 @@ class NotificationAuditLogAdmin(admin.ModelAdmin):
         "notification_id",
         "correlation_id",
         "user_id",
-        "template_code"
+        "template_code",
     )
 
     list_filter = ("status", "notification_type", "created_at")
@@ -106,7 +106,7 @@ class NotificationAuditLogAdmin(admin.ModelAdmin):
         "template_code",
         "status",
         "correlation_id",
-        "created_at"
+        "created_at",
     )
 
     ordering = ("-created_at",)
@@ -124,9 +124,7 @@ class NotificationAuditLogAdmin(admin.ModelAdmin):
         color = color_map.get(obj.status, "black")
 
         return format_html(
-            '<span style="color: {}; font-weight: bold;">{}</span>',
-            color,
-            obj.status
+            '<span style="color: {}; font-weight: bold;">{}</span>', color, obj.status
         )
 
     status_colored.short_description = "Status"
@@ -153,18 +151,13 @@ class ServiceFailureLogAdmin(admin.ModelAdmin):
         "service_name",
         "error_message_short",
         "correlation_id",
-        "created_at"
+        "created_at",
     )
 
     list_filter = ("service_name", "created_at")
     search_fields = ("service_name", "correlation_id", "error_message")
 
-    readonly_fields = (
-        "service_name",
-        "error_message",
-        "correlation_id",
-        "created_at"
-    )
+    readonly_fields = ("service_name", "error_message", "correlation_id", "created_at")
 
     ordering = ("-created_at",)
     date_hierarchy = "created_at"
@@ -200,7 +193,7 @@ class GatewayMetricsAdmin(admin.ModelAdmin):
         "total_failures",
         "failure_rate_display",
         "avg_latency_ms_display",
-        "last_updated"
+        "last_updated",
     )
 
     readonly_fields = (
@@ -208,7 +201,7 @@ class GatewayMetricsAdmin(admin.ModelAdmin):
         "total_requests",
         "total_failures",
         "avg_latency_ms",
-        "last_updated"
+        "last_updated",
     )
 
     ordering = ("service_name",)
@@ -231,7 +224,7 @@ class GatewayMetricsAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="color: {}; font-weight: bold;">{}%</span>',
             color,
-            f"{rate:.2f}"
+            f"{rate:.2f}",
         )
 
     failure_rate_display.short_description = "Failure Rate"
@@ -251,9 +244,7 @@ class GatewayMetricsAdmin(admin.ModelAdmin):
         color = "green" if value < 100 else "orange" if value < 500 else "red"
 
         return format_html(
-            '<span style="color: {};">{} ms</span>',
-            color,
-            f"{value:.2f}"
+            '<span style="color: {};">{} ms</span>', color, f"{value:.2f}"
         )
 
     avg_latency_ms_display.short_description = "Avg Latency"

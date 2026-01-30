@@ -1,9 +1,6 @@
-
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from rest_framework.test import APIClient
-from django.urls import reverse
-
 
 
 @pytest.mark.django_db
@@ -38,20 +35,22 @@ class TestTemplateProxy:
         client = APIClient()
         res = client.get("/api/v1/templates/")
 
+        assert res.status_code == 503
+        assert res.data["success"] is False
+
+
 @pytest.mark.django_db
 class TestNotificationGatewayValidation:
     def test_notification_missing_required_fields_returns_400(self):
         client = APIClient()
 
         # Send invalid payload (missing required fields)
-        payload = {
-            "notification_type": "email"
-        }
+        payload = {"notification_type": "email"}
 
         res = client.post("/api/v1/notifications/", payload, format="json")
 
         assert res.status_code == 400
-        
+
         # Confirm serializer error keys exist
         assert "request_id" in res.data
         assert "template_code" in res.data

@@ -42,8 +42,7 @@ class UserProxy(APIView):
 
         if not response:
             return Response(
-                {"success": False, "message": "User Service unavailable"},
-                status=503
+                {"success": False, "message": "User Service unavailable"}, status=503
             )
 
         return Response(response.json(), status=response.status_code)
@@ -75,7 +74,7 @@ class TemplateProxy(APIView):
         if not response:
             return Response(
                 {"success": False, "message": "Template Service unavailable"},
-                status=503
+                status=503,
             )
 
         return Response(response.json(), status=response.status_code)
@@ -106,13 +105,11 @@ class NotificationGateway(APIView):
             "priority": body.get("priority"),
             "metadata": body.get("metadata"),
             "created_at": datetime.utcnow().isoformat(),
-            "correlation_id": correlation_id
+            "correlation_id": correlation_id,
         }
 
         response = async_to_sync(proxy_request)(
-            request,
-            "NOTIFICATION",
-            override_body=message
+            request, "NOTIFICATION", override_body=message
         )
 
         status_value = "pending" if response else "failed"
@@ -126,23 +123,25 @@ class NotificationGateway(APIView):
                 notification_type=message["notification_type"],
                 template_code=message["template_code"],
                 status=status_value,
-                correlation_id=correlation_id
+                correlation_id=correlation_id,
             )
         except Exception as e:
             logger.error(f"Audit log failed: {e}")
 
         if not response:
-            return Response({
-                "success": False,
-                "message": "Notification service unavailable",
-                "error": "SERVICE_DOWN"
-            }, status=503)
+            return Response(
+                {
+                    "success": False,
+                    "message": "Notification service unavailable",
+                    "error": "SERVICE_DOWN",
+                },
+                status=503,
+            )
 
-        return Response({
-            "success": True,
-            "data": message,
-            "message": "Notification queued"
-        }, status=202)
+        return Response(
+            {"success": True, "data": message, "message": "Notification queued"},
+            status=202,
+        )
 
 
 class HealthCheck(APIView):
@@ -161,17 +160,22 @@ class HealthCheck(APIView):
             "notification_service": self.check_service("NOTIFICATION"),
         }
 
-        overall_status = "healthy" if all(v == "up" for v in services.values()) else "degraded"
+        overall_status = (
+            "healthy" if all(v == "up" for v in services.values()) else "degraded"
+        )
 
         if overall_status == "degraded":
             down = [k for k, v in services.items() if v == "down"]
             logger.warning(f"Health degraded — down: {', '.join(down)}")
 
-        return Response({
-            "success": overall_status == "healthy",
-            "status": overall_status,
-            "services": services
-        }, status=200)
+        return Response(
+            {
+                "success": overall_status == "healthy",
+                "status": overall_status,
+                "services": services,
+            },
+            status=200,
+        )
 
     def check_database(self):
         try:
@@ -243,7 +247,7 @@ class NotificationProxy(APIView):
         if not response:
             return Response(
                 {"success": False, "message": "Notification Service unavailable"},
-                status=503
+                status=503,
             )
 
         return Response(response.json(), status=response.status_code)

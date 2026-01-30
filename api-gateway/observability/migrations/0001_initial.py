@@ -5,59 +5,80 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='GatewayMetrics',
+            name="GatewayMetrics",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('service_name', models.CharField(max_length=50, unique=True)),
-                ('total_requests', models.PositiveIntegerField(default=0)),
-                ('total_failures', models.PositiveIntegerField(default=0)),
-                ('avg_latency_ms', models.FloatField(default=0)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("service_name", models.CharField(max_length=50, unique=True)),
+                ("total_requests", models.PositiveIntegerField(default=0)),
+                ("total_failures", models.PositiveIntegerField(default=0)),
+                ("avg_latency_ms", models.FloatField(default=0)),
             ],
         ),
         migrations.CreateModel(
-            name='GatewayRequestLog',
+            name="GatewayRequestLog",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, primary_key=True, serialize=False)),
-                ('method', models.CharField(max_length=10)),
-                ('path', models.TextField()),
-                ('user_id', models.UUIDField(blank=True, null=True)),
-                ('status_code', models.IntegerField()),
-                ('latency_ms', models.FloatField()),
-                ('service_target', models.CharField(max_length=50)),
-                ('correlation_id', models.UUIDField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4, primary_key=True, serialize=False
+                    ),
+                ),
+                ("method", models.CharField(max_length=10)),
+                ("path", models.TextField()),
+                ("user_id", models.UUIDField(blank=True, null=True)),
+                ("status_code", models.IntegerField()),
+                ("latency_ms", models.FloatField()),
+                ("service_target", models.CharField(max_length=50)),
+                ("correlation_id", models.UUIDField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
         ),
         migrations.CreateModel(
-            name='NotificationAuditLog',
+            name="NotificationAuditLog",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, primary_key=True, serialize=False)),
-                ('notification_id', models.UUIDField()),
-                ('request_id', models.CharField(max_length=255)),
-                ('user_id', models.UUIDField()),
-                ('notification_type', models.CharField(max_length=20)),
-                ('template_code', models.CharField(max_length=100)),
-                ('status', models.CharField(max_length=20)),
-                ('correlation_id', models.UUIDField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4, primary_key=True, serialize=False
+                    ),
+                ),
+                ("notification_id", models.UUIDField()),
+                ("request_id", models.CharField(max_length=255)),
+                ("user_id", models.UUIDField()),
+                ("notification_type", models.CharField(max_length=20)),
+                ("template_code", models.CharField(max_length=100)),
+                ("status", models.CharField(max_length=20)),
+                ("correlation_id", models.UUIDField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
         ),
         migrations.CreateModel(
-            name='ServiceFailureLog',
+            name="ServiceFailureLog",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, primary_key=True, serialize=False)),
-                ('service_name', models.CharField(max_length=50)),
-                ('error_message', models.TextField()),
-                ('correlation_id', models.UUIDField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4, primary_key=True, serialize=False
+                    ),
+                ),
+                ("service_name", models.CharField(max_length=50)),
+                ("error_message", models.TextField()),
+                ("correlation_id", models.UUIDField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
         ),
     ]

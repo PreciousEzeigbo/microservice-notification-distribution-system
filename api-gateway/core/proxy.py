@@ -46,7 +46,6 @@ async def proxy_request(request, service_name, override_body=None):
 
     async def call():
         async with httpx.AsyncClient(timeout=5) as client:
-
             # Forward the EXACT incoming path
             full_url = f"{service_url}{request.path}"
 
@@ -63,18 +62,12 @@ async def proxy_request(request, service_name, override_body=None):
             # JSON payload forwarding
             if isinstance(payload, dict):
                 return await client.request(
-                    method=request.method,
-                    url=full_url,
-                    headers=headers,
-                    json=payload
+                    method=request.method, url=full_url, headers=headers, json=payload
                 )
 
             # Raw body forwarding
             return await client.request(
-                method=request.method,
-                url=full_url,
-                headers=headers,
-                content=payload
+                method=request.method, url=full_url, headers=headers, content=payload
             )
 
     try:
@@ -95,7 +88,7 @@ async def proxy_request(request, service_name, override_body=None):
         await sync_to_async(ServiceFailureLog.objects.create)(
             service_name=service_name,
             error_message=f"Timeout: {e}",
-            correlation_id=correlation_id
+            correlation_id=correlation_id,
         )
         return None
 
@@ -107,7 +100,7 @@ async def proxy_request(request, service_name, override_body=None):
         await sync_to_async(ServiceFailureLog.objects.create)(
             service_name=service_name,
             error_message=f"Request error: {e}",
-            correlation_id=correlation_id
+            correlation_id=correlation_id,
         )
         return None
 
@@ -119,6 +112,6 @@ async def proxy_request(request, service_name, override_body=None):
         await sync_to_async(ServiceFailureLog.objects.create)(
             service_name=service_name,
             error_message=f"Unexpected error: {e}",
-            correlation_id=correlation_id
+            correlation_id=correlation_id,
         )
         return None
