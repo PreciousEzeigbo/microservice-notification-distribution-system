@@ -1,7 +1,0 @@
-__pycache__/
-*.pyc
-.env
-venv/
-.git
-.gitignore
-.ruff_cache
